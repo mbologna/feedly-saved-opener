@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Feedly Saved Opener</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            width: 380px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 400px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h1::before {
+            content: "⭐";
+            font-size: 24px;
+        }
+
+        /* Status & Article Count */
+        .status {
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .status.info {
+            background: #f0f4ff;
+            border: 1px solid #667eea40;
+            color: #5a67d8;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #f4433640;
+        }
+
+        .article-count {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+            border-radius: 10px;
+            border: 2px solid #667eea30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Settings */
+        .settings-section {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .settings-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .settings-row label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .settings-row input[type="number"] {
+            width: 80px;
+            padding: 6px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Inputs & Buttons */
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #e0e0e0;
+            color: #666;
+        }
+
+        .btn-outline:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .flex-spacer {
+            flex: 1;
+        }
+
+        /* Empty State */
+        #empty-state {
+            text-align: center;
+            padding: 20px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .celebrate-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .empty-text {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout-link {
+            color: #dc3545;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .logout-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Feedly Saved Opener</h1>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <div style="text-align: center; color: #666;">Syncing with Feedly...</div>
+        </div>
+
+        <div id="not-authenticated" class="hidden">
+            <div class="status info">
+                To get started, we need your Feedly Token to access your "Saved for Later" board.
+            </div>
+            <input type="password" id="token-input" placeholder="Paste Feedly Token here..." />
+            <button id="save-token-btn" class="btn-primary">Connect Account</button>
+            <button id="open-feedly-btn" class="btn-secondary">Get Token from Feedly</button>
+        </div>
+
+        <div id="authenticated" class="hidden">
+
+            <div id="content-view">
+                <div id="article-count" class="article-count">...</div>
+
+                <div class="settings-section">
+                    <div class="settings-row">
+                        <label>Batch Size</label>
+                        <input type="number" id="batch-size-input" min="1" max="100">
+                    </div>
+                </div>
+
+                <button id="open-batch-btn" class="btn-primary">
+                    Open Saved Articles
+                </button>
+            </div>
+
+            <div id="empty-state" class="hidden">
+                <span class="celebrate-icon">🎉</span>
+                <h3>You're all caught up!</h3>
+                <p class="empty-text">No saved articles found in your list.</p>
+                <button id="go-to-feedly-btn" class="btn-primary">Go to Feedly</button>
+            </div>
+
+            <button id="refresh-btn" class="btn-secondary" style="margin-top: 10px;">
+                🔄 Refresh List
+            </button>
+
+            <div id="progress-text" style="text-align: center; color: #666; font-size: 12px; margin-top: 8px;"></div>
+        </div>
+
+        <div id="error-state" class="hidden">
+            <div class="status error" id="error-message"></div>
+            <button id="retry-btn" class="btn-secondary">Try Again</button>
+            <button id="reset-auth-btn" class="btn-outline" style="margin-top: 10px">Reset Token</button>
+        </div>
+
+        <div class="footer">
+            <span>v1.0.0</span>
+            <a href="#" id="logout-btn" class="logout-link">Disconnect Account</a>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>

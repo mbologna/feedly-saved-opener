@@ -95,7 +95,7 @@ class FeedlyAPI {
   }
 
   static async getUserId() {
-    let result = await browser.storage.local.get(STORAGE_KEYS.userId);
+    const result = await browser.storage.local.get(STORAGE_KEYS.userId);
     let userId = result[STORAGE_KEYS.userId];
 
     if (!userId) {
@@ -249,49 +249,49 @@ browser.contextMenus.onClicked.addListener(async (info) => {
 browser.runtime.onMessage.addListener(async (message) => {
   try {
     switch (message.action) {
-      case 'checkAuth': {
-        const token = await FeedlyAPI.getStoredToken();
-        return { authenticated: !!token };
+    case 'checkAuth': {
+      const token = await FeedlyAPI.getStoredToken();
+      return { authenticated: !!token };
+    }
+
+    case 'saveToken': {
+      if (!message.token) {
+        throw new Error('Token is required');
       }
+      await FeedlyAPI.saveToken(message.token);
 
-      case 'saveToken': {
-        if (!message.token) {
-          throw new Error('Token is required');
-        }
-        await FeedlyAPI.saveToken(message.token);
+      // Verify token works by fetching profile
+      await FeedlyAPI.getProfile();
 
-        // Verify token works by fetching profile
-        await FeedlyAPI.getProfile();
+      // Start periodic updates
+      startPeriodicUpdate();
 
-        // Update badge with initial count
-        const articles = await FeedlyAPI.getStarredArticles();
-        updateBadge(articles.length);
+      return { success: true };
+    }
 
-        return { success: true };
+    case 'logout': {
+      await FeedlyAPI.clearToken();
+      stopPeriodicUpdate();
+      updateBadge(0);
+      return { success: true };
+    }
+
+    case 'getArticles': {
+      const articles = await FeedlyAPI.getStarredArticles();
+      updateBadge(articles.length);
+      return { articles };
+    }
+
+    case 'openBatch': {
+      if (!Array.isArray(message.articles)) {
+        throw new Error('Invalid articles array');
       }
+      const opened = await processBatch(message.articles);
+      return { opened };
+    }
 
-      case 'logout': {
-        await FeedlyAPI.clearToken();
-        updateBadge(0);
-        return { success: true };
-      }
-
-      case 'getArticles': {
-        const articles = await FeedlyAPI.getStarredArticles();
-        updateBadge(articles.length);
-        return { articles };
-      }
-
-      case 'openBatch': {
-        if (!Array.isArray(message.articles)) {
-          throw new Error('Invalid articles array');
-        }
-        const opened = await processBatch(message.articles);
-        return { opened };
-      }
-
-      default:
-        return { error: 'Unknown action' };
+    default:
+      return { error: 'Unknown action' };
     }
   } catch (error) {
     console.error('Message handler error:', error);
@@ -305,16 +305,49 @@ browser.runtime.onMessage.addListener(async (message) => {
   }
 });
 
-// Initialize badge on startup
-(async () => {
+/**
+ * Periodic badge update
+ */
+const UPDATE_INTERVAL = 60 * 60 * 1000; // 60 minutes
+let updateTimer = null;
+
+async function updateBadgeCount() {
   try {
     const token = await FeedlyAPI.getStoredToken();
-    if (token) {
-      const articles = await FeedlyAPI.getStarredArticles();
-      updateBadge(articles.length);
+    if (!token) {
+      updateBadge(0);
+      return;
     }
+
+    const articles = await FeedlyAPI.getStarredArticles();
+    updateBadge(articles.length);
   } catch (error) {
-    console.error('Initialization error:', error);
-    setBadgeError();
+    console.error('Badge update error:', error);
+    if (error.message.includes('401')) {
+      setBadgeError();
+    }
   }
-})();
+}
+
+function startPeriodicUpdate() {
+  // Clear existing timer
+  if (updateTimer) {
+    clearInterval(updateTimer);
+  }
+
+  // Initial update
+  updateBadgeCount();
+
+  // Set up periodic updates
+  updateTimer = setInterval(updateBadgeCount, UPDATE_INTERVAL);
+}
+
+function stopPeriodicUpdate() {
+  if (updateTimer) {
+    clearInterval(updateTimer);
+    updateTimer = null;
+  }
+}
+
+// Initialize on startup
+startPeriodicUpdate();

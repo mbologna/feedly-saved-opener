@@ -11,6 +11,7 @@ const views = {
 const elements = {
     articleCount: document.getElementById('article-count'),
     openBatchBtn: document.getElementById('open-batch-btn'),
+    openAllBtn: document.getElementById('open-all-btn'),
     refreshBtn: document.getElementById('refresh-btn'),
     saveTokenBtn: document.getElementById('save-token-btn'),
     openFeedlyBtn: document.getElementById('open-feedly-btn'),
@@ -24,7 +25,6 @@ const elements = {
     batchSize: document.getElementById('batch-size-input')
 };
 
-// State
 let state = {
     articles: [],
     batchSize: 30,
@@ -32,8 +32,6 @@ let state = {
 };
 
 const STORAGE_KEY = 'userSettings';
-
-// --- Initialization & Settings ---
 
 async function init() {
     await loadSettings();
@@ -51,49 +49,39 @@ async function loadSettings() {
 async function saveSettings() {
     let val = parseInt(elements.batchSize.value);
     if (val < 1) val = 1;
-    if (val > 100) val = 100; // Cap at 100 for browser safety
-
+    if (val > 100) val = 100;
     state.batchSize = val;
     elements.batchSize.value = val;
-
-    await browser.storage.local.set({
-        [STORAGE_KEY]: { batchSize: state.batchSize }
-    });
-    updateUI(); // Refresh button text
+    await browser.storage.local.set({ [STORAGE_KEY]: { batchSize: state.batchSize } });
+    updateUI();
 }
 
-// --- View Management ---
-
 function showView(viewName) {
-    // Hide all main views
-    ['loading', 'notAuth', 'auth', 'error'].forEach(v => {
-        views[v].classList.add('hidden');
-    });
-    // Show target
+    Object.values(views).forEach(v => v.classList.add('hidden'));
     views[viewName].classList.remove('hidden');
 }
 
 function updateUI() {
     const count = state.articles.length;
-
-    // 1. Check if empty
     if (count === 0) {
         views.content.classList.add('hidden');
         views.empty.classList.remove('hidden');
         elements.progressText.textContent = '';
         return;
     }
-
-    // 2. Show content
     views.content.classList.remove('hidden');
     views.empty.classList.add('hidden');
-
-    // 3. Update Text & Button
     elements.articleCount.textContent = `${count} Saved Article${count !== 1 ? 's' : ''}`;
 
     const openCount = Math.min(state.batchSize, count);
     elements.openBatchBtn.textContent = `⚡ Open ${openCount} Article${openCount !== 1 ? 's' : ''}`;
-    elements.openBatchBtn.disabled = false;
+
+    // Toggle Open All button visibility based on count
+    if (count > state.batchSize) {
+        elements.openAllBtn.classList.remove('hidden');
+    } else {
+        elements.openAllBtn.classList.add('hidden');
+    }
 }
 
 function setLoading(active, btn = null) {
@@ -108,11 +96,10 @@ function setLoading(active, btn = null) {
             btn.disabled = false;
         }
     }
-    // Also disable/enable global interactions
     elements.refreshBtn.disabled = active;
+    elements.openAllBtn.disabled = active;
+    elements.openBatchBtn.disabled = active;
 }
-
-// --- Core Logic ---
 
 async function checkAuthAndLoad() {
     showView('loading');
@@ -130,104 +117,126 @@ async function checkAuthAndLoad() {
 }
 
 async function loadArticles() {
-    elements.articleCount.textContent = 'Loading...';
-    setLoading(true, elements.refreshBtn);
-
+    elements.articleCount.textContent = '...';
+    // Don't full block UI, just update text
     try {
         const response = await browser.runtime.sendMessage({ action: 'getArticles' });
         if (response.error) throw new Error(response.error);
-
         state.articles = response.articles || [];
         updateUI();
     } catch (error) {
-        console.error(error);
-        elements.articleCount.textContent = 'Error';
-        // Don't fully crash, just show alert/toast logic ideally, but here we might fallback
-        if (error.message.includes('401')) {
-            logout(); // Auto logout on auth error
-        }
-    } finally {
-        setLoading(false, elements.refreshBtn);
+        if (error.message.includes('401')) logout();
+        else console.error(error);
     }
 }
 
-async function openBatch() {
-    if (state.processing || state.articles.length === 0) return;
+async function openBatch(articlesToProcess = null) {
+    if (state.processing && !articlesToProcess) return;
 
     const batchSize = Math.min(state.batchSize, state.articles.length);
-    const articlesToOpen = state.articles.slice(0, batchSize);
+    const targetArticles = articlesToProcess || state.articles.slice(0, batchSize);
 
-    setLoading(true, elements.openBatchBtn);
-    elements.progressText.textContent = `Opening ${batchSize} tabs...`;
+    if (!articlesToProcess) setLoading(true, elements.openBatchBtn);
+    elements.progressText.textContent = `Opening ${targetArticles.length} tabs...`;
 
     try {
         const response = await browser.runtime.sendMessage({
             action: 'openBatch',
-            articles: articlesToOpen
+            articles: targetArticles
         });
 
         if (response.error) throw new Error(response.error);
 
-        // Update local state immediately
+        // Remove opened from local state
         const openedCount = response.opened;
-        state.articles = state.articles.slice(openedCount);
-
-        updateUI();
-
-        elements.progressText.textContent = `Opened ${openedCount} articles.`;
-        setTimeout(() => { elements.progressText.textContent = ''; }, 3000);
-
-        // If all done, close popup shortly after
-        if (state.articles.length === 0) {
-            setTimeout(() => window.close(), 1500);
+        // Ideally we filter out by ID, but for speed we slice logic
+        // This assumes the API processed them in order
+        if (!articlesToProcess) {
+            state.articles = state.articles.slice(openedCount);
+            updateUI();
         }
 
+        elements.progressText.textContent = `Opened ${openedCount} articles.`;
+        return openedCount;
+
     } catch (error) {
-        showError('Failed to open articles: ' + error.message);
+        showError('Failed: ' + error.message);
+        return 0;
     } finally {
-        setLoading(false, elements.openBatchBtn);
+        if (!articlesToProcess) setLoading(false, elements.openBatchBtn);
+    }
+}
+
+// "Wit & Polish": Smart Batching Loop
+async function openAllSmart() {
+    if (state.processing || state.articles.length === 0) return;
+
+    if (!confirm(`This will open all ${state.articles.length} articles in batches of ${state.batchSize}.\nContinue?`)) return;
+
+    setLoading(true, elements.openAllBtn);
+    elements.openAllBtn.textContent = 'Processing All...';
+
+    try {
+        while (state.articles.length > 0) {
+            const batchSize = Math.min(state.batchSize, state.articles.length);
+            const batch = state.articles.slice(0, batchSize);
+
+            elements.progressText.textContent = `Batching ${batchSize} items (${state.articles.length} remaining)...`;
+
+            await openBatch(batch);
+
+            // Remove from local state explicitly
+            state.articles = state.articles.slice(batchSize);
+            updateUI();
+
+            // Safety pause between batches
+            if (state.articles.length > 0) {
+                elements.progressText.textContent = "Cooling down (1s)...";
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
+        // Done
+        setTimeout(() => window.close(), 1000);
+    } catch (e) {
+        showError(e.message);
+    } finally {
+        setLoading(false, elements.openAllBtn);
+        elements.openAllBtn.textContent = 'Open All (Smart Batch)';
     }
 }
 
 async function saveToken() {
     const token = elements.tokenInput.value.trim();
     if (!token) return;
-
     setLoading(true, elements.saveTokenBtn);
     try {
         await browser.runtime.sendMessage({ action: 'saveToken', token });
         elements.tokenInput.value = '';
         checkAuthAndLoad();
-    } catch (e) {
-        showError('Failed to save token');
-    } finally {
-        setLoading(false, elements.saveTokenBtn);
-    }
+    } catch (e) { showError('Failed to save token'); }
+    finally { setLoading(false, elements.saveTokenBtn); }
 }
 
 async function logout() {
-    if (!confirm('Disconnect your Feedly account?')) return;
     await browser.runtime.sendMessage({ action: 'logout' });
     showView('notAuth');
 }
 
 function showError(msg, isFatal = false) {
     elements.errorMsg.textContent = msg;
-    if (isFatal) showView('error');
-    else alert(msg);
+    if (isFatal) showView('error'); else alert(msg);
 }
 
-// --- Event Listeners ---
-
+// Listeners
 elements.batchSize.addEventListener('change', saveSettings);
-elements.openBatchBtn.addEventListener('click', openBatch);
+elements.openBatchBtn.addEventListener('click', () => openBatch());
+elements.openAllBtn.addEventListener('click', openAllSmart);
 elements.refreshBtn.addEventListener('click', loadArticles);
 elements.saveTokenBtn.addEventListener('click', saveToken);
-elements.logoutBtn.addEventListener('click', logout);
+elements.logoutBtn.addEventListener('click', () => { if (confirm('Disconnect?')) logout(); });
 elements.resetAuthBtn.addEventListener('click', logout);
 elements.retryBtn.addEventListener('click', checkAuthAndLoad);
 elements.openFeedlyBtn.addEventListener('click', () => browser.tabs.create({ url: 'https://feedly.com/i/console' }));
 elements.goToFeedlyBtn.addEventListener('click', () => browser.tabs.create({ url: 'https://feedly.com/i/saved' }));
 
-// Init
 init();

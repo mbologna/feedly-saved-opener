@@ -12,12 +12,13 @@
     "permissions": [
         "storage",
         "tabs",
-        "menus"
+        "contextMenus"
     ],
     "host_permissions": [
         "https://cloud.feedly.com/*"
     ],
     "background": {
+        "service_worker": "background.js",
         "scripts": [
             "background.js"
         ]

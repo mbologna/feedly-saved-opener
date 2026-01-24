@@ -1,7 +1,7 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Feedly Saved Opener",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "Open and unsave your Feedly saved articles in customizable batches. Fast, secure, and works with free Feedly accounts.",
     "author": "Michele Bologna",
     "homepage_url": "https://github.com/mbologna/feedly-saved-opener",
@@ -12,15 +12,17 @@
     "permissions": [
         "storage",
         "tabs",
+        "menus"
+    ],
+    "host_permissions": [
         "https://cloud.feedly.com/*"
     ],
     "background": {
         "scripts": [
             "background.js"
-        ],
-        "persistent": false
+        ]
     },
-    "browser_action": {
+    "action": {
         "default_icon": {
             "48": "icons/icon-48.png",
             "96": "icons/icon-96.png"
@@ -31,7 +33,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "feedly-saved-opener@michelebologna.net",
-            "strict_min_version": "78.0",
+            "strict_min_version": "109.0",
             "data_collection_permissions": {
                 "required": [
                     "none"

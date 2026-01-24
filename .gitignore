@@ -1,53 +1,31 @@
-# Build artifacts
+# Build output
 dist/
-build/
-*.xpi
 *.zip
-web-ext-artifacts/
+*.xpi
 
-# Node
+# Dependencies
 node_modules/
-npm-debug.log*
 package-lock.json
 
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.Spotlight-V100
-.Trashes
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-
-# Linux
-*~
-.directory
-
-# IDEs
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*.sublime-project
-*.sublime-workspace
+*~
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Logs
 *.log
+npm-debug.log*
 
 # Temporary files
-*.tmp
+tmp/
+temp/
 .cache/
 
-# Environment
-.env
-.env.local
-
-# Personal config (user's Feedly token)
-config.json
-.feedly_opener_config.json
+# Firefox specific
+web-ext-artifacts/

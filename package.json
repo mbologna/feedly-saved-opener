@@ -5,7 +5,11 @@
     "scripts": {
         "test": "node tests/test.js",
         "build": "./build-extension.sh",
-        "lint": "echo 'No linter configured'"
+        "lint": "eslint *.js popup/*.js tests/*.js",
+        "lint:fix": "eslint *.js popup/*.js tests/*.js --fix",
+        "prepare": "husky install",
+        "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+        "release": "standard-version"
     },
     "repository": {
         "type": "git",
@@ -22,5 +26,19 @@
     "bugs": {
         "url": "https://github.com/mbologna/feedly-saved-opener/issues"
     },
-    "homepage": "https://github.com/mbologna/feedly-saved-opener#readme"
+    "homepage": "https://github.com/mbologna/feedly-saved-opener#readme",
+    "devDependencies": {
+        "@commitlint/cli": "^18.4.3",
+        "@commitlint/config-conventional": "^18.4.3",
+        "conventional-changelog-cli": "^4.1.0",
+        "eslint": "^8.55.0",
+        "husky": "^8.0.3",
+        "lint-staged": "^15.2.0",
+        "standard-version": "^9.5.0"
+    },
+    "lint-staged": {
+        "*.js": [
+            "eslint --fix"
+        ]
+    }
 }

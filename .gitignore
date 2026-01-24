@@ -21,6 +21,8 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Temporary files
 tmp/
@@ -29,3 +31,13 @@ temp/
 
 # Firefox specific
 web-ext-artifacts/
+
+# Release notes
+release_notes.md
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Husky
+.husky

@@ -5,8 +5,12 @@ const FEEDLY_CONFIG = {
 
 const STORAGE_KEYS = {
   accessToken: 'accessToken',
-  userId: 'userId'
+  userId: 'userId',
+  batchSize: 'userSettings' // reading batch size for context menu
 };
+
+// Utils
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class FeedlyAPI {
   static async getStoredToken() {
@@ -22,24 +26,44 @@ class FeedlyAPI {
     await browser.storage.local.remove([STORAGE_KEYS.accessToken, STORAGE_KEYS.userId]);
   }
 
-  static async makeRequest(url, options = {}) {
+  static async makeRequest(url, options = {}, retries = 3, backoff = 1000) {
     const token = await this.getStoredToken();
     if (!token) throw new Error('Not authenticated');
 
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          ...options.headers
+        }
+      });
+
+      if (response.status === 401) throw new Error('401 Unauthorized');
+
+      // Handle Rate Limits (429) or Server Errors (5xx)
+      if (response.status === 429 || response.status >= 500) {
+        if (retries > 0) {
+          console.warn(`Request failed (${response.status}), retrying in ${backoff}ms...`);
+          await wait(backoff);
+          return this.makeRequest(url, options, retries - 1, backoff * 2);
+        }
       }
-    });
 
-    if (response.status === 401) throw new Error('401 Unauthorized');
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+      if (!response.ok) throw new Error(`API Error: ${response.status}`);
 
-    const text = await response.text();
-    return text ? JSON.parse(text) : null;
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
+
+    } catch (error) {
+      if (retries > 0 && error.message === 'Failed to fetch') {
+        // Network blip retry
+        await wait(backoff);
+        return this.makeRequest(url, options, retries - 1, backoff * 2);
+      }
+      throw error;
+    }
   }
 
   static async getStarredArticles() {
@@ -52,7 +76,8 @@ class FeedlyAPI {
     }
 
     const streamId = encodeURIComponent(`user/${userId}/tag/global.saved`);
-    const url = `${FEEDLY_CONFIG.apiBase}/streams/contents?streamId=${streamId}&count=1000`;
+    // Cache busting
+    const url = `${FEEDLY_CONFIG.apiBase}/streams/contents?streamId=${streamId}&count=1000&ts=${Date.now()}`;
     const data = await this.makeRequest(url);
     return data.items || [];
   }
@@ -67,6 +92,54 @@ class FeedlyAPI {
       })
     });
   }
+}
+
+// Context Menu Setup
+browser.runtime.onInstalled.addListener(() => {
+  browser.contextMenus.create({
+    id: "open-next-batch",
+    title: "⚡ Open Next Batch",
+    contexts: ["action"]
+  });
+});
+
+browser.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === "open-next-batch") {
+    // Determine batch size from settings or default
+    const settings = await browser.storage.local.get(STORAGE_KEYS.batchSize);
+    const batchSize = settings[STORAGE_KEYS.batchSize]?.batchSize || 30;
+
+    // Fetch and open
+    const articles = await FeedlyAPI.getStarredArticles();
+    if (articles.length > 0) {
+      const toOpen = articles.slice(0, batchSize);
+      processBatch(toOpen);
+    }
+  }
+});
+
+// Logic extracted for reuse (Context menu + Popup)
+async function processBatch(list) {
+  let openedCount = 0;
+  for (const article of list) {
+    const url = article.canonicalUrl || (article.alternate && article.alternate[0]?.href);
+    if (url) {
+      await browser.tabs.create({ url, active: false });
+      openedCount++;
+
+      // Fire and forget unstar, but with error logging
+      FeedlyAPI.unstarArticle(article.id).catch(e => console.error("Unstar failed", e));
+
+      // Small delay to be gentle on the browser
+      await wait(150);
+    }
+  }
+
+  // Update badge
+  const currentTotal = await FeedlyAPI.getStarredArticles();
+  updateBadge(currentTotal.length);
+
+  return openedCount;
 }
 
 browser.runtime.onMessage.addListener(async (message) => {
@@ -91,33 +164,8 @@ browser.runtime.onMessage.addListener(async (message) => {
         return { articles };
 
       case 'openBatch':
-        let openedCount = 0;
-        const list = message.articles || [];
-
-        for (const article of list) {
-          const url = article.canonicalUrl || (article.alternate && article.alternate[0]?.href);
-          if (url) {
-            // Open tab
-            await browser.tabs.create({ url, active: false });
-            openedCount++;
-
-            // Unstar (Fire and forget, but catch errors so loop continues)
-            try {
-              await FeedlyAPI.unstarArticle(article.id);
-            } catch (e) {
-              console.warn('Failed to unstar:', article.id, e);
-            }
-
-            // Slight delay to prevent browser locking up
-            await new Promise(r => setTimeout(r, 100));
-          }
-        }
-
-        // Update badge with remaining count estimation
-        const currentTotal = await FeedlyAPI.getStarredArticles();
-        updateBadge(currentTotal.length);
-
-        return { opened: openedCount };
+        const opened = await processBatch(message.articles || []);
+        return { opened };
     }
   } catch (error) {
     return { error: error.message };
@@ -126,9 +174,9 @@ browser.runtime.onMessage.addListener(async (message) => {
 
 function updateBadge(count) {
   if (count > 0) {
-    browser.browserAction.setBadgeText({ text: count.toString() });
-    browser.browserAction.setBadgeBackgroundColor({ color: '#667eea' });
+    browser.action.setBadgeText({ text: count.toString() });
+    browser.action.setBadgeBackgroundColor({ color: '#667eea' });
   } else {
-    browser.browserAction.setBadgeText({ text: '' });
+    browser.action.setBadgeText({ text: '' });
   }
 }

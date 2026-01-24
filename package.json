@@ -1,0 +1,26 @@
+{
+    "name": "feedly-saved-opener",
+    "version": "2.0.0",
+    "description": "Open saved Feedly articles in batch with one click",
+    "scripts": {
+        "test": "node tests/test.js",
+        "build": "./build-extension.sh",
+        "lint": "echo 'No linter configured'"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mbologna/feedly-saved-opener.git"
+    },
+    "keywords": [
+        "feedly",
+        "rss",
+        "firefox-extension",
+        "productivity"
+    ],
+    "author": "Michele Bologna",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/mbologna/feedly-saved-opener/issues"
+    },
+    "homepage": "https://github.com/mbologna/feedly-saved-opener#readme"
+}

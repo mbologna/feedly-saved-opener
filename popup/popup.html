@@ -255,6 +255,43 @@
         .logout-link:hover {
             text-decoration: underline;
         }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
+            }
+
+            .container {
+                background: #2d2d2d;
+                color: #eee;
+            }
+
+            h1 {
+                color: #fff;
+            }
+
+            .settings-section {
+                background: #3d3d3d;
+            }
+
+            .status.info {
+                background: #1e2132;
+                color: #8ea1ff;
+                border-color: #3f445e;
+            }
+
+            input[type="password"],
+            input[type="number"] {
+                background: #1a1a1a;
+                border-color: #444;
+                color: #fff;
+            }
+
+            .btn-secondary {
+                background: #444;
+                color: #eee;
+            }
+        }
     </style>
 </head>
 

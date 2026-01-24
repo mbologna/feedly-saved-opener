@@ -60,18 +60,70 @@ Load the generated ZIP from `dist/` in Firefox via `about:debugging`.
 
 ## Development
 
+### Initial Setup
+```bash
+git clone https://github.com/mbologna/feedly-saved-opener.git
+cd feedly-saved-opener
+chmod +x setup.sh
+./setup.sh
+```
+
+This will:
+- Install all dependencies
+- Set up Husky for git hooks
+- Configure pre-commit linting
+- Configure commit message validation
+- Create initial CHANGELOG.md
+
+### Commit Message Format
+We use [Conventional Commits](https://www.conventionalcommits.org/):
+
 ### Testing
 ```bash
-npm install
 npm test
+```
+
+### Linting
+```bash
+npm run lint        # Check for issues
+npm run lint:fix    # Auto-fix issues
 ```
 
 ### Building
 ```bash
-./build-extension.sh
+npm run build
 ```
 
 Output: `dist/feedly-saved-opener-v2.0.0.zip`
+
+### Creating a Release
+
+1. **Make changes and commit using conventional commits**
+   ```bash
+   git add .
+   git commit -m "feat: add new feature"
+   ```
+
+2. **Generate changelog and bump version**
+   ```bash
+   npm run release
+   ```
+   This will:
+   - Bump version in `package.json` and `manifest.json`
+   - Generate/update `CHANGELOG.md`
+   - Create a git tag
+   - Commit the changes
+
+3. **Push to GitHub**
+   ```bash
+   git push --follow-tags origin main
+   ```
+
+4. **GitHub Actions will automatically**:
+   - Run tests
+   - Build the extension
+   - Create a GitHub release with the ZIP file
+   - Use the generated changelog as release notes
 
 ## Privacy
 

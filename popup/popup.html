@@ -5,6 +5,59 @@
     <meta charset="utf-8">
     <title>Feedly Saved Opener</title>
     <style>
+        :root {
+            --bg-body: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-container: white;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-heading: #2c3e50;
+            --bg-status-info: #f0f4ff;
+            --border-status-info: #667eea40;
+            --text-status-info: #5a67d8;
+            --bg-settings: #f8f9fa;
+            --border-input: #e0e0e0;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            --skeleton-base: #eee;
+            --skeleton-highlight: #f5f5f5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+                --bg-container: #1e1e1e;
+                --text-primary: #e2e8f0;
+                --text-secondary: #a0aec0;
+                --text-heading: #e2e8f0;
+                --bg-status-info: #2d3748;
+                --border-status-info: #4a5568;
+                --text-status-info: #a3bffa;
+                --bg-settings: #2d2d2d;
+                --border-input: #4a5568;
+                --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+                --skeleton-base: #2d2d2d;
+                --skeleton-highlight: #3d3d3d;
+            }
+
+            input {
+                background-color: #2d2d2d;
+                color: white;
+            }
+
+            .btn-secondary {
+                background: #333;
+                color: #eee;
+                border: 1px solid #444;
+            }
+
+            .btn-secondary:hover {
+                background: #444;
+            }
+
+            .footer {
+                border-top-color: #333;
+            }
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -15,17 +68,17 @@
             width: 380px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-size: 14px;
-            color: #333;
+            color: var(--text-primary);
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-body);
             min-height: 400px;
         }
 
         .container {
-            background: white;
+            background: var(--bg-container);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow);
             position: relative;
             min-height: 300px;
             display: flex;
@@ -36,15 +89,42 @@
             font-size: 20px;
             font-weight: 700;
             margin-bottom: 16px;
-            color: #2c3e50;
+            color: var(--text-heading);
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        h1::before {
-            content: "⭐";
-            font-size: 24px;
+        /* Skeleton Loading */
+        .skeleton {
+            background: var(--skeleton-base);
+            background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-highlight) 50%, var(--skeleton-base) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+        }
+
+        .skeleton-text {
+            height: 20px;
+            margin-bottom: 10px;
+            width: 60%;
+        }
+
+        .skeleton-box {
+            height: 80px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            width: 100%;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
         }
 
         /* Status & Article Count */
@@ -57,15 +137,23 @@
         }
 
         .status.info {
-            background: #f0f4ff;
-            border: 1px solid #667eea40;
-            color: #5a67d8;
+            background: var(--bg-status-info);
+            border: 1px solid var(--border-status-info);
+            color: var(--text-status-info);
         }
 
         .status.error {
             background: #ffebee;
             color: #c62828;
             border: 1px solid #f4433640;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .status.error {
+                background: #4a1818;
+                color: #fc8181;
+                border: 1px solid #742a2a;
+            }
         }
 
         .article-count {
@@ -87,7 +175,7 @@
         .settings-section {
             margin-bottom: 16px;
             padding: 12px;
-            background: #f8f9fa;
+            background: var(--bg-settings);
             border-radius: 8px;
         }
 
@@ -101,14 +189,14 @@
         .settings-row label {
             font-size: 12px;
             font-weight: 600;
-            color: #666;
+            color: var(--text-secondary);
             text-transform: uppercase;
         }
 
         .settings-row input[type="number"] {
             width: 80px;
             padding: 6px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-input);
             border-radius: 6px;
             font-weight: 600;
             text-align: center;
@@ -119,7 +207,7 @@
             width: 100%;
             padding: 12px;
             margin-bottom: 12px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-input);
             border-radius: 8px;
         }
 
@@ -164,8 +252,8 @@
 
         .btn-outline {
             background: transparent;
-            border: 2px solid #e0e0e0;
-            color: #666;
+            border: 2px solid var(--border-input);
+            color: var(--text-secondary);
         }
 
         .btn-outline:hover {
@@ -176,10 +264,6 @@
         /* Utility Classes */
         .hidden {
             display: none !important;
-        }
-
-        .flex-spacer {
-            flex: 1;
         }
 
         /* Empty State */
@@ -196,7 +280,7 @@
         }
 
         .empty-text {
-            color: #666;
+            color: var(--text-secondary);
             margin-bottom: 20px;
             line-height: 1.5;
         }
@@ -210,27 +294,6 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }
-        }
-
-        /* Spinner */
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
             }
         }
 
@@ -255,58 +318,20 @@
         .logout-link:hover {
             text-decoration: underline;
         }
-
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: linear-gradient(135deg, #1a1c2c 0%, #4a192c 100%);
-            }
-
-            .container {
-                background: #2d2d2d;
-                color: #eee;
-            }
-
-            h1 {
-                color: #fff;
-            }
-
-            .settings-section {
-                background: #3d3d3d;
-            }
-
-            .status.info {
-                background: #1e2132;
-                color: #8ea1ff;
-                border-color: #3f445e;
-            }
-
-            input[type="password"],
-            input[type="number"] {
-                background: #1a1a1a;
-                border-color: #444;
-                color: #fff;
-            }
-
-            .btn-secondary {
-                background: #444;
-                color: #eee;
-            }
-        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Feedly Saved Opener</h1>
+        <h1>⭐ Feedly Saved Opener</h1>
 
         <div id="loading" class="hidden">
-            <div class="spinner"></div>
-            <div style="text-align: center; color: #666;">Syncing with Feedly...</div>
+            <div class="skeleton skeleton-box"></div>
+            <div class="skeleton skeleton-text" style="margin: 0 auto;"></div>
         </div>
 
         <div id="not-authenticated" class="hidden">
-            <div class="status info">
-                To get started, we need your Feedly Token to access your "Saved for Later" board.
+            <div class="status info">To get started, we need your Feedly Token to access your "Saved for Later" board.
             </div>
             <input type="password" id="token-input" placeholder="Paste Feedly Token here..." />
             <button id="save-token-btn" class="btn-primary">Connect Account</button>
@@ -314,20 +339,16 @@
         </div>
 
         <div id="authenticated" class="hidden">
-
             <div id="content-view">
                 <div id="article-count" class="article-count">...</div>
-
                 <div class="settings-section">
                     <div class="settings-row">
                         <label>Batch Size</label>
                         <input type="number" id="batch-size-input" min="1" max="100">
                     </div>
                 </div>
-
-                <button id="open-batch-btn" class="btn-primary">
-                    Open Saved Articles
-                </button>
+                <button id="open-batch-btn" class="btn-primary">Open Saved Articles</button>
+                <button id="open-all-btn" class="btn-outline">Open All (Smart Batch)</button>
             </div>
 
             <div id="empty-state" class="hidden">
@@ -337,11 +358,9 @@
                 <button id="go-to-feedly-btn" class="btn-primary">Go to Feedly</button>
             </div>
 
-            <button id="refresh-btn" class="btn-secondary" style="margin-top: 10px;">
-                🔄 Refresh List
-            </button>
-
-            <div id="progress-text" style="text-align: center; color: #666; font-size: 12px; margin-top: 8px;"></div>
+            <button id="refresh-btn" class="btn-secondary" style="margin-top: 10px;">🔄 Refresh List</button>
+            <div id="progress-text"
+                style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-top: 8px;"></div>
         </div>
 
         <div id="error-state" class="hidden">
@@ -351,11 +370,10 @@
         </div>
 
         <div class="footer">
-            <span>v1.0.0</span>
+            <span>v2.0.0</span>
             <a href="#" id="logout-btn" class="logout-link">Disconnect Account</a>
         </div>
     </div>
-
     <script src="popup.js"></script>
 </body>
 

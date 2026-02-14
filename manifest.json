@@ -12,7 +12,8 @@
     "permissions": [
         "storage",
         "tabs",
-        "contextMenus"
+        "contextMenus",
+        "alarms"
     ],
     "host_permissions": [
         "https://cloud.feedly.com/*"

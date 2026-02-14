@@ -19,6 +19,8 @@
             --shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             --skeleton-base: #eee;
             --skeleton-highlight: #f5f5f5;
+            --toast-success: #10b981;
+            --toast-error: #ef4444;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -318,6 +320,229 @@
         .logout-link:hover {
             text-decoration: underline;
         }
+
+        /* Article List Preview */
+        .article-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-input);
+            border-radius: 8px;
+            background: var(--bg-settings);
+        }
+
+        .article-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-input);
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-item-title {
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .article-item-source {
+            color: var(--text-secondary);
+            font-size: 10px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-settings);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-container);
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 300px;
+            width: 90%;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 12px;
+            color: var(--text-heading);
+        }
+
+        .modal-content p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .toast {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .toast.success {
+            background: var(--toast-success);
+        }
+
+        .toast.error {
+            background: var(--toast-error);
+        }
+
+        .toast.info {
+            background: #667eea;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Token Input Wrapper */
+        .token-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .token-input-wrapper input {
+            flex: 1;
+            padding-right: 40px;
+            margin-bottom: 0;
+        }
+
+        .btn-icon {
+            position: absolute;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            margin: 0;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            opacity: 0.6;
+        }
+
+        .btn-icon:hover {
+            opacity: 1;
+        }
+
+        /* Loading Spinner */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Batch Preview & Last Sync */
+        .batch-preview {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .last-sync {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 8px;
+        }
     </style>
 </head>
 
@@ -333,7 +558,10 @@
         <div id="not-authenticated" class="hidden">
             <div class="status info">To get started, we need your Feedly Token to access your "Saved for Later" board.
             </div>
-            <input type="password" id="token-input" placeholder="Paste Feedly Token here..." />
+            <div class="token-input-wrapper">
+                <input type="password" id="token-input" placeholder="Paste Feedly Token here..." />
+                <button id="toggle-token-visibility" class="btn-icon"><span id="eye-icon">👁️</span></button>
+            </div>
             <button id="save-token-btn" class="btn-primary">Connect Account</button>
             <button id="open-feedly-btn" class="btn-secondary">Get Token from Feedly</button>
         </div>
@@ -341,11 +569,14 @@
         <div id="authenticated" class="hidden">
             <div id="content-view">
                 <div id="article-count" class="article-count">...</div>
+                <div id="article-list" class="article-list hidden"></div>
+                <button id="toggle-list-btn" class="btn-outline hidden">Show Articles</button>
                 <div class="settings-section">
                     <div class="settings-row">
                         <label>Batch Size</label>
                         <input type="number" id="batch-size-input" min="1" max="100">
                     </div>
+                    <div id="batch-preview" class="batch-preview"></div>
                 </div>
                 <button id="open-batch-btn" class="btn-primary">Open Saved Articles</button>
                 <button id="open-all-btn" class="btn-outline">Open All (Smart Batch)</button>
@@ -358,7 +589,12 @@
                 <button id="go-to-feedly-btn" class="btn-primary">Go to Feedly</button>
             </div>
 
+            <div id="progress-container" class="progress-container hidden">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
             <button id="refresh-btn" class="btn-secondary" style="margin-top: 10px;">🔄 Refresh List</button>
+            <div id="last-sync" class="last-sync"></div>
+            <button id="export-btn" class="btn-outline hidden">Export URLs</button>
             <div id="progress-text"
                 style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-top: 8px;"></div>
         </div>
@@ -373,7 +609,19 @@
             <span>v2.0.0</span>
             <a href="#" id="logout-btn" class="logout-link">Disconnect Account</a>
         </div>
+
+        <div id="confirm-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Open All Articles?</h3>
+                <p id="modal-message"></p>
+                <div class="modal-actions">
+                    <button id="modal-cancel" class="btn-secondary">Cancel</button>
+                    <button id="modal-confirm" class="btn-primary">Open All</button>
+                </div>
+            </div>
+        </div>
     </div>
+    <div id="toast-container" class="toast-container"></div>
     <script src="popup.js"></script>
 </body>
 

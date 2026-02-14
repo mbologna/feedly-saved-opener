@@ -10,6 +10,15 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Building Feedly Saved Opener Extension${NC}"
 echo "========================================"
 
+# Pre-build validation
+echo "Running lint..."
+npm run lint || { echo -e "${RED}Lint failed. Fix errors before building.${NC}"; exit 1; }
+
+echo "Running tests..."
+npm test || { echo -e "${RED}Tests failed. Fix errors before building.${NC}"; exit 1; }
+
+echo ""
+
 # Get version from manifest
 VERSION=$(grep -o '"version": *"[^"]*"' manifest.json | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
 echo -e "${YELLOW}Version: $VERSION${NC}"

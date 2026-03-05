@@ -17,7 +17,8 @@ const STORAGE_KEYS = {
   userSettings: 'userSettings',
   cachedBadgeCount: 'cachedBadgeCount',
   cachedArticles: 'cachedArticles',
-  cacheTimestamp: 'cacheTimestamp'
+  cacheTimestamp: 'cacheTimestamp',
+  clickLog: 'clickLog'
 };
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -360,6 +361,18 @@ async function processBatch(articles) {
       openedCount++;
       openedIds.push(article.id);
 
+      // Fire-and-forget: append to persistent click log
+      browser.storage.local.get(STORAGE_KEYS.clickLog).then(result => {
+        const log = result[STORAGE_KEYS.clickLog] || [];
+        log.push({
+          url,
+          feedTitle: article.origin?.title || null,
+          feedId: article.origin?.streamId || null,
+          timestamp: Date.now()
+        });
+        return browser.storage.local.set({ [STORAGE_KEYS.clickLog]: log });
+      }).catch(err => console.error('Failed to log click:', err));
+
       await wait(DELAYS.tabCreation);
     } catch (error) {
       console.error('Failed to open article:', article.id, error);
@@ -486,6 +499,16 @@ browser.runtime.onMessage.addListener(async (message) => {
       }
       const result = await processBatch(message.articles);
       return { opened: result.opened, unstarFailed: result.unstarFailed };
+    }
+
+    case 'getClickLog': {
+      const result = await browser.storage.local.get(STORAGE_KEYS.clickLog);
+      return { log: result[STORAGE_KEYS.clickLog] || [] };
+    }
+
+    case 'clearClickLog': {
+      await browser.storage.local.remove(STORAGE_KEYS.clickLog);
+      return { success: true };
     }
 
     default:

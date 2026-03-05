@@ -39,6 +39,11 @@ const elements = {
   lastSync: document.getElementById('last-sync'),
   exportBtn: document.getElementById('export-btn'),
   exportLogBtn: document.getElementById('export-log-btn'),
+  toggleStatsBtn: document.getElementById('toggle-stats-btn'),
+  statsSection: document.getElementById('stats-section'),
+  statsSummary: document.getElementById('stats-summary'),
+  statsTop10: document.getElementById('stats-top10'),
+  clearLogBtn: document.getElementById('clear-log-btn'),
   toggleTokenVisibility: document.getElementById('toggle-token-visibility'),
   eyeIcon: document.getElementById('eye-icon'),
   confirmModal: document.getElementById('confirm-modal'),
@@ -69,7 +74,8 @@ const state = {
   batchSize: 30,
   processing: false,
   lastSync: null,
-  articleListVisible: false
+  articleListVisible: false,
+  statsVisible: false
 };
 
 // =============================================================================
@@ -379,6 +385,114 @@ function updateLastSync() {
     return;
   }
   elements.lastSync.textContent = `Last updated: ${formatRelativeTime(state.lastSync)}`;
+}
+
+// =============================================================================
+// Stats Section
+// =============================================================================
+
+/**
+ * Renders the stats section from a click log array
+ * @param {Array} log - Array of click log entries
+ */
+function renderStats(log) {
+  if (log.length === 0) {
+    elements.statsSummary.textContent = '';
+    elements.statsTop10.innerHTML = '<div class="stats-empty">No clicks logged yet — open some articles first.</div>';
+    return;
+  }
+
+  // Summary line
+  const timestamps = log.map(e => e.timestamp).filter(Boolean);
+  const oldest = timestamps.length ? new Date(Math.min(...timestamps)).toLocaleDateString() : '—';
+  const newest = timestamps.length ? new Date(Math.max(...timestamps)).toLocaleDateString() : '—';
+  elements.statsSummary.textContent = `${log.length} clicks  ·  ${oldest} – ${newest}`;
+
+  // Aggregate by feedTitle (fallback to hostname)
+  const counts = {};
+  for (const entry of log) {
+    let key = entry.feedTitle;
+    if (!key && entry.url) {
+      try {
+        key = new URL(entry.url).hostname.replace(/^www\./, '');
+      } catch (_) {
+        key = entry.url;
+      }
+    }
+    if (key) {
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  }
+
+  const top10 = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+  const rows = top10.map(([source, count], i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td title="${escapeHtml(source)}">${escapeHtml(source)}</td>
+      <td>${count}</td>
+    </tr>
+  `).join('');
+
+  elements.statsTop10.innerHTML = `
+    <table class="stats-table">
+      <thead><tr><th>#</th><th>Source</th><th>Opens</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+/**
+ * Loads the click log from storage and renders the stats section
+ */
+async function loadStats() {
+  try {
+    const response = await browser.runtime.sendMessage({ action: 'getClickLog' });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    renderStats(response.log || []);
+  } catch (error) {
+    console.error('Failed to load stats:', error);
+    elements.statsTop10.innerHTML = '<div class="stats-empty">Failed to load stats.</div>';
+  }
+}
+
+/**
+ * Toggles the stats section visibility
+ */
+async function toggleStats() {
+  state.statsVisible = !state.statsVisible;
+  if (state.statsVisible) {
+    elements.statsSection.classList.remove('hidden');
+    elements.toggleStatsBtn.textContent = '📊 Hide Stats';
+    await loadStats();
+  } else {
+    elements.statsSection.classList.add('hidden');
+    elements.toggleStatsBtn.textContent = '📊 Stats';
+  }
+}
+
+/**
+ * Clears the click log after confirmation
+ */
+async function clearLog() {
+  const confirmed = await showConfirmModal('Clear all click history? This cannot be undone.');
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await browser.runtime.sendMessage({ action: 'clearClickLog' });
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    renderStats([]);
+    showToast('Click log cleared', 'success');
+  } catch (error) {
+    console.error('Failed to clear log:', error);
+    showToast('Failed to clear log', 'error');
+  }
 }
 
 // =============================================================================
@@ -838,6 +952,8 @@ function setupEventListeners() {
   elements.toggleListBtn.addEventListener('click', toggleArticleList);
   elements.exportBtn.addEventListener('click', exportArticles);
   elements.exportLogBtn.addEventListener('click', exportClickLog);
+  elements.toggleStatsBtn.addEventListener('click', toggleStats);
+  elements.clearLogBtn.addEventListener('click', clearLog);
 
   elements.toggleTokenVisibility.addEventListener('click', () => {
     const isPassword = elements.tokenInput.type === 'password';

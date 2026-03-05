@@ -529,6 +529,76 @@
             }
         }
 
+        /* Stats Section */
+        #stats-section {
+            margin-top: 10px;
+            padding: 12px;
+            background: var(--bg-settings);
+            border-radius: 8px;
+            border: 1px solid var(--border-input);
+        }
+
+        .stats-summary {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .stats-table th {
+            text-align: left;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--border-input);
+        }
+
+        .stats-table th:last-child {
+            text-align: right;
+        }
+
+        .stats-table td {
+            padding: 5px 6px;
+            border-bottom: 1px solid var(--border-input);
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+
+        .stats-table td:first-child {
+            color: var(--text-secondary);
+            font-size: 10px;
+            width: 20px;
+        }
+
+        .stats-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+            color: #667eea;
+            width: 40px;
+        }
+
+        .stats-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .stats-empty {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 8px 0;
+        }
+
         /* Batch Preview & Last Sync */
         .batch-preview {
             font-size: 11px;
@@ -595,7 +665,13 @@
             <button id="refresh-btn" class="btn-secondary" style="margin-top: 10px;">🔄 Refresh List</button>
             <div id="last-sync" class="last-sync"></div>
             <button id="export-btn" class="btn-outline hidden">Export URLs</button>
-            <button id="export-log-btn" class="btn-outline">Export Click Log</button>
+            <button id="toggle-stats-btn" class="btn-outline">📊 Stats</button>
+            <div id="stats-section" class="hidden">
+                <div id="stats-summary" class="stats-summary"></div>
+                <div id="stats-top10"></div>
+                <button id="clear-log-btn" class="btn-outline" style="margin-top: 8px; font-size: 12px; padding: 8px;">🗑️ Clear Log</button>
+            </div>
+            <button id="export-log-btn" class="btn-outline">⬇️ Export Click Log</button>
             <div id="progress-text"
                 style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-top: 8px;"></div>
         </div>

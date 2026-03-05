@@ -38,6 +38,7 @@ const elements = {
   batchPreview: document.getElementById('batch-preview'),
   lastSync: document.getElementById('last-sync'),
   exportBtn: document.getElementById('export-btn'),
+  exportLogBtn: document.getElementById('export-log-btn'),
   toggleTokenVisibility: document.getElementById('toggle-token-visibility'),
   eyeIcon: document.getElementById('eye-icon'),
   confirmModal: document.getElementById('confirm-modal'),
@@ -410,6 +411,42 @@ function exportArticles() {
   URL.revokeObjectURL(url);
 
   showToast(`Exported ${state.articles.length} URLs`, 'success');
+}
+
+/**
+ * Exports the click log as a JSON file for use with feedly-auditor --top10
+ */
+async function exportClickLog() {
+  try {
+    const response = await browser.runtime.sendMessage({ action: 'getClickLog' });
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    const log = response.log || [];
+    if (log.length === 0) {
+      showToast('No click history yet — open some articles first', 'info');
+      return;
+    }
+
+    const json = JSON.stringify(log, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'feedly-click-log.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast(`Exported ${log.length} click${log.length === 1 ? '' : 's'}`, 'success');
+  } catch (error) {
+    console.error('Failed to export click log:', error);
+    showToast('Failed to export click log', 'error');
+  }
 }
 
 // =============================================================================
@@ -800,6 +837,7 @@ function setupEventListeners() {
 
   elements.toggleListBtn.addEventListener('click', toggleArticleList);
   elements.exportBtn.addEventListener('click', exportArticles);
+  elements.exportLogBtn.addEventListener('click', exportClickLog);
 
   elements.toggleTokenVisibility.addEventListener('click', () => {
     const isPassword = elements.tokenInput.type === 'password';

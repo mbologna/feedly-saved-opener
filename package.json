@@ -8,8 +8,7 @@
         "lint": "eslint *.js popup/*.js tests/*.js",
         "lint:fix": "eslint *.js popup/*.js tests/*.js --fix",
         "prepare": "husky install",
-        "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-        "release": "standard-version"
+        "release": "release-it"
     },
     "repository": {
         "type": "git",
@@ -30,15 +29,32 @@
     "devDependencies": {
         "@commitlint/cli": "^20.5.0",
         "@commitlint/config-conventional": "^20.5.0",
-        "conventional-changelog-cli": "^5.0.0",
+        "@release-it/conventional-changelog": "^11.0.0",
         "eslint": "^10.1.0",
         "husky": "^9.1.7",
         "lint-staged": "^16.4.0",
-        "standard-version": "^9.5.0"
+        "release-it": "^20.0.1"
     },
     "lint-staged": {
         "*.js": [
             "eslint --fix"
         ]
+    },
+    "release-it": {
+        "git": {
+            "commitMessage": "chore: release v${version}",
+            "tagName": "v${version}"
+        },
+        "github": {
+            "release": false
+        },
+        "plugins": {
+            "@release-it/conventional-changelog": {
+                "preset": {
+                    "name": "angular"
+                },
+                "infile": "CHANGELOG.md"
+            }
+        }
     }
 }

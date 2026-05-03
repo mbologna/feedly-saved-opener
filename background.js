@@ -153,7 +153,7 @@ class FeedlyAPI {
 
     } catch (error) {
       if (error.name === 'AbortError') {
-        throw new Error('Request timeout');
+        throw new Error('Request timeout', { cause: error });
       }
       if (retries > 0 && (error.message === 'Failed to fetch' || error.name === 'NetworkError')) {
         console.warn(`Network error, retrying in ${backoff}ms...`);

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: mbologna/.github/.github/workflows/node-ci.yml@f3f1584c4872c50a42e304b0bdb7cb40088e0bfe # main
+    uses: mbologna/.github/.github/workflows/node-ci.yml@79e90cadfb3336caf16e4f749548dbea92d8d3bc # main
     with:
       node_version: "18"
       package_manager: npm

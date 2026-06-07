@@ -27,8 +27,8 @@
     },
     "homepage": "https://github.com/mbologna/feedly-saved-opener#readme",
     "devDependencies": {
-        "@commitlint/cli": "^20.5.0",
-        "@commitlint/config-conventional": "^20.5.0",
+        "@commitlint/cli": "^21.0.0",
+        "@commitlint/config-conventional": "^21.0.0",
         "@release-it/conventional-changelog": "^11.0.0",
         "@eslint/js": "^10.0.0",
         "eslint": "^10.1.0",

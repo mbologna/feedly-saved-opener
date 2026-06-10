@@ -5,6 +5,11 @@ name: CI
     branches: [main, develop]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -36,3 +41,10 @@ jobs:
           name: extension-build
           path: dist/*.zip
           retention-days: 30
+
+  auto-release:
+    if: github.event_name == 'schedule'
+    uses: mbologna/.github/.github/workflows/auto-release.yml@b76cd3762a1b6787ae79e88f7c012b2dc848f325 # main
+    with:
+      strategy: commits
+    secrets: inherit

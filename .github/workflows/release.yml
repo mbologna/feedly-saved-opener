@@ -7,53 +7,9 @@ on:
 
 jobs:
   release:
-    name: Create Release
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-      - name: Make build script executable
-        run: chmod +x build-extension.sh
-
-      - name: Build extension
-        run: ./build-extension.sh
-
-      - name: Extract version and changelog
-        id: version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-          # Extract changelog for this version
-          if [ -f CHANGELOG.md ]; then
-            awk -v ver="$VERSION" '
-              /^## \[/{if(p)exit; if($0 ~ "\\["ver"\\]"){p=1; next}}
-              p && /^## \[/{exit}
-              p{print}
-            ' CHANGELOG.md > release_notes.md
-          else
-            echo "Release $VERSION" > release_notes.md
-          fi
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3
-        with:
-          files: dist/*.zip
-          body_path: release_notes.md
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: mbologna/.github/.github/workflows/tag-release.yml@bc67bfd693eafaf8371ae6ba2626e1f977ab3311
+    with:
+      node_version: '18'
+      build_command: chmod +x build-extension.sh && ./build-extension.sh
+    permissions:
+      contents: write

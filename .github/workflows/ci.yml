@@ -19,7 +19,7 @@ jobs:
   ci:
     uses: mbologna/.github/.github/workflows/node-ci.yml@b84e24e2ad726629e7d50cd30cdaca387dcdc3a1 # main
     with:
-      node_version: "18"
+      node_version: "20"
       package_manager: npm
       test_command: test
       build_command: bash build-extension.sh

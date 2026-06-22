@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: mbologna/.github/.github/workflows/node-ci.yml@d19f016152450c5c8139f1deeba411bd0a2b6b40 # main
+    uses: mbologna/.github/.github/workflows/node-ci.yml@b84e24e2ad726629e7d50cd30cdaca387dcdc3a1 # main
     with:
       node_version: "18"
       package_manager: npm
@@ -29,7 +29,7 @@ jobs:
 
   auto-release:
     if: github.event_name == 'schedule'
-    uses: mbologna/.github/.github/workflows/auto-release.yml@17e62b3f3f9e7985d155f652d47162ffada15cb6 # main
+    uses: mbologna/.github/.github/workflows/auto-release.yml@b84e24e2ad726629e7d50cd30cdaca387dcdc3a1 # main
     with:
       strategy: commits
     secrets: inherit

@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: mbologna/.github/.github/workflows/node-ci.yml@main
+    uses: mbologna/.github/.github/workflows/node-ci.yml@d19f016152450c5c8139f1deeba411bd0a2b6b40 # main
     with:
       node_version: "18"
       package_manager: npm

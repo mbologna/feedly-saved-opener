@@ -1960,6 +1960,39 @@ async function runAllTests() {
   });
 
   // =========================================================================
+  // Click Log Cap Tests
+  // =========================================================================
+  await describe('Click Log Cap', async () => {
+    const CLICK_LOG_MAX_ENTRIES = 500;
+
+    function appendToLog(log, entry) {
+      log.push(entry);
+      return log.length > CLICK_LOG_MAX_ENTRIES
+        ? log.slice(log.length - CLICK_LOG_MAX_ENTRIES)
+        : log;
+    }
+
+    await it('keeps the log uncapped while under the limit', () => {
+      let log = [];
+      for (let i = 0; i < 10; i++) {
+        log = appendToLog(log, { url: `https://example.com/${i}`, timestamp: i });
+      }
+      assertArrayLength(log, 10);
+      assertEqual(log[0].timestamp, 0);
+    });
+
+    await it('trims oldest entries once the cap is exceeded', () => {
+      let log = [];
+      for (let i = 0; i < CLICK_LOG_MAX_ENTRIES + 10; i++) {
+        log = appendToLog(log, { url: `https://example.com/${i}`, timestamp: i });
+      }
+      assertArrayLength(log, CLICK_LOG_MAX_ENTRIES);
+      assertEqual(log[0].timestamp, 10);
+      assertEqual(log[log.length - 1].timestamp, CLICK_LOG_MAX_ENTRIES + 9);
+    });
+  });
+
+  // =========================================================================
   // Results Summary
   // =========================================================================
   console.log('\n' + '='.repeat(60));

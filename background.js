@@ -32,6 +32,7 @@ const DELAYS = {
 
 const ALARM_NAME = 'badge-update';
 const UPDATE_INTERVAL_MINUTES = 15;
+const CLICK_LOG_MAX_ENTRIES = 500;
 
 // =============================================================================
 // Utilities
@@ -361,7 +362,7 @@ async function processBatch(articles) {
       openedCount++;
       openedIds.push(article.id);
 
-      // Fire-and-forget: append to persistent click log
+      // Fire-and-forget: append to persistent click log, capped to avoid unbounded storage growth
       browser.storage.local.get(STORAGE_KEYS.clickLog).then(result => {
         const log = result[STORAGE_KEYS.clickLog] || [];
         log.push({
@@ -370,7 +371,10 @@ async function processBatch(articles) {
           feedId: article.origin?.streamId || null,
           timestamp: Date.now()
         });
-        return browser.storage.local.set({ [STORAGE_KEYS.clickLog]: log });
+        const trimmed = log.length > CLICK_LOG_MAX_ENTRIES
+          ? log.slice(log.length - CLICK_LOG_MAX_ENTRIES)
+          : log;
+        return browser.storage.local.set({ [STORAGE_KEYS.clickLog]: trimmed });
       }).catch(err => console.error('Failed to log click:', err));
 
       await wait(DELAYS.tabCreation);

@@ -1760,7 +1760,7 @@ async function runAllTests() {
       manifest_version: 3,
       name: 'Feedly Saved Opener',
       version: '2.0.0',
-      permissions: ['storage', 'tabs', 'contextMenus', 'alarms'],
+      permissions: ['storage', 'contextMenus', 'alarms'],
       host_permissions: ['https://cloud.feedly.com/*']
     };
 
@@ -1770,9 +1770,12 @@ async function runAllTests() {
 
     await it('has required permissions', () => {
       assertTrue(manifest.permissions.includes('storage'));
-      assertTrue(manifest.permissions.includes('tabs'));
       assertTrue(manifest.permissions.includes('contextMenus'));
       assertTrue(manifest.permissions.includes('alarms'));
+    });
+
+    await it('does not request the unused tabs permission', () => {
+      assertTrue(!manifest.permissions.includes('tabs'));
     });
 
     await it('has Feedly API host permission', () => {

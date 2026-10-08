@@ -28,7 +28,12 @@ This extension opens all your saved Feedly articles in batches with a single cli
 - **Customizable**: Adjust batch size to your needs
 - **Secure**: Token stored locally in browser storage
 - **Free Tier**: Works with Feedly's free developer tokens
-- **Smart Batching**: Optional mode to open all articles in controlled batches
+- **Smart Batching**: "Open All" mode processes every saved article in controlled batches with a cooldown between batches
+- **Quick Batch via Context Menu**: Right-click the toolbar icon to open the next batch without opening the popup
+- **Offline-Friendly**: Falls back to cached articles when the network is unavailable, with automatic retry on rate limits/server errors
+- **Export**: Save your article URLs to a text file, or export your local click history as JSON
+- **Stats Panel**: See your top sources and total articles opened from a local, on-device click log (clearable anytime)
+- **Dark Mode**: Popup automatically adapts to your system theme
 
 ## Installation
 
@@ -57,6 +62,8 @@ Load the generated ZIP from `dist/` in Firefox via `about:debugging`.
 2. Adjust batch size (default: 30)
 3. Click "Open Saved Articles" to open batch
 4. Articles open in background tabs and unsave automatically
+
+Tip: press `R` in the popup to refresh the article count, or right-click the toolbar icon for a quick "Open Next Batch" action without opening the popup.
 
 ## Development
 

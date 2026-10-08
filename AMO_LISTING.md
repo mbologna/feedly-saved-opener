@@ -32,8 +32,9 @@ Feedly Saved Opener opens all your saved articles in browser tabs with a single 
 
 **⚡ Batch Opening**
 - Open 1-100 articles at once (customizable)
-- Optimized 50ms delay between tabs
+- 150ms delay between tabs for reliable loading
 - Opens in background tabs (won't disrupt your work)
+- "Open All" mode processes every saved article in controlled batches with a cooldown between them
 
 **🔄 Auto-Unsave**
 - Automatically removes save/star as articles open
@@ -42,13 +43,25 @@ Feedly Saved Opener opens all your saved articles in browser tabs with a single 
 
 **📊 Badge Notifications**
 - Shows saved article count on toolbar icon
-- Updates every 5 minutes
+- Updates every 15 minutes
 - Know at a glance how many articles are waiting
 
 **⚙️ Customizable**
 - Adjust batch size to your preference
 - Settings persist across sessions
 - One-time setup, works forever
+
+**📤 Export & Stats**
+- Export saved article URLs to a text file
+- View a local stats panel of your top sources and total articles opened
+- Export your click history as JSON, or clear it anytime
+
+**🖱️ Context Menu**
+- Right-click the toolbar icon for a quick "Open Next Batch" action, no popup needed
+
+**📡 Offline-Friendly**
+- Falls back to cached articles when the network is unavailable
+- Automatically retries with backoff on rate limits or server errors
 
 **🔐 Privacy & Security**
 - No analytics or tracking
@@ -123,8 +136,9 @@ Beautiful gradient design with smooth animations. Clean, intuitive layout. Profe
 Your Feedly token is stored in Firefox's encrypted extension storage. It never leaves your computer except to communicate directly with Feedly's API.
 
 **Minimal Permissions**
-- `storage` - Save your token and preferences
-- `tabs` - Open articles in browser tabs
+- `storage` - Save your token, preferences, and local click history
+- `contextMenus` - Add the "Open Next Batch" right-click action on the toolbar icon
+- `alarms` - Periodically refresh the badge count in the background
 - `https://cloud.feedly.com/*` - Access Feedly API
 
 **Open Source**
@@ -135,7 +149,7 @@ All code is publicly available on GitHub for auditing.
 ## 🛠️ TECHNICAL DETAILS
 
 **Requirements:**
-- Firefox 78 or later
+- Firefox 109 or later
 - Free Feedly account
 - Feedly developer token (free, easy to get)
 
@@ -217,7 +231,7 @@ Open all saved newsletter articles at once, read in one focused session.
 
 ## 📊 STATS
 
-- **Version:** 1.0.0
+- **Version:** 2.0.0
 - **License:** MIT (Open Source)
 - **File Size:** ~50KB
 - **Languages:** JavaScript, HTML, CSS
@@ -240,6 +254,13 @@ This extension is completely free with no ads, tracking, or premium features.
 ---
 
 ## 📝 CHANGELOG
+
+**v2.0.0**
+- "Open All" smart batching with cooldown between batches
+- Export saved article URLs, plus a local stats panel with click-history export/clear
+- Context menu "Open Next Batch" quick action
+- Offline fallback to cached articles with automatic retry/backoff
+- Dark mode support
 
 **v1.0.0 - Initial Release**
 - Batch opening with customizable size

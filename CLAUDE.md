@@ -20,7 +20,7 @@ npm run release       # bump version (package.json + manifest.json), update CHAN
 
 **IPC-based design:** The popup and background service worker communicate via `browser.runtime.sendMessage`. The popup never calls the Feedly API directly.
 
-- **`background.js`** — Service worker handling all Feedly API calls, badge updates, tab creation, and alarms. Contains `FeedlyAPI` class (static methods), `processBatch` (opens tabs with 150ms delay, fire-and-forget unstar), retry logic (max 3, exponential backoff on 429/5xx, no retry on 401), and a 5-minute article cache. Uses `browser.alarms` for periodic badge updates every 60 minutes.
+- **`background.js`** — Service worker handling all Feedly API calls, badge updates, tab creation, and alarms. Contains `FeedlyAPI` class (static methods), `processBatch` (opens tabs with 150ms delay, fire-and-forget unstar), retry logic (max 3, exponential backoff on 429/5xx, no retry on 401), and a 5-minute article cache. Uses `browser.alarms` for periodic badge updates every 15 minutes. Also maintains a capped (500-entry) local click log for the popup's stats/export feature.
 - **`popup/popup.js`** — UI logic with a view state machine (`loading` → `auth`/`notAuth`/`error`; within `auth`: `content` vs `empty`). Sends IPC messages: `checkAuth`, `saveToken`, `logout`, `getArticles`, `openBatch`. Includes XSS protection via `escapeHtml`.
 - **`popup/popup.html`** — Self-contained popup with inline CSS (380px wide, dark mode support).
 - **`tests/test.js`** — Custom test framework (~120 tests, no external dependencies). Uses `createMockBrowser` to simulate the WebExtensions API. Core logic functions are re-implemented inline for isolation rather than imported from source.

@@ -2,6 +2,7 @@
 
 > Open your saved Feedly articles in batch with one click.
 
+[![CI](https://github.com/mbologna/feedly-saved-opener/actions/workflows/ci.yml/badge.svg)](https://github.com/mbologna/feedly-saved-opener/actions/workflows/ci.yml)
 [![Firefox Add-on](https://img.shields.io/badge/Firefox-Add--on-orange?logo=firefox)](https://addons.mozilla.org/firefox/addon/feedly-saved-opener/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 

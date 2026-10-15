@@ -1996,6 +1996,126 @@ async function runAllTests() {
   });
 
   // =========================================================================
+  // Sorting & Priority Domains
+  // =========================================================================
+
+  await describe('Sorting & Priority Domains', async () => {
+    function sortArticles(articles, priorityDomains = []) {
+      const domains = priorityDomains.map(d => String(d).trim().toLowerCase()).filter(Boolean);
+      if (domains.length === 0) {
+        return articles;
+      }
+      const isPriority = (article) => {
+        const url = (getArticleUrl(article) || '').toLowerCase();
+        return domains.some(domain => url.includes(domain));
+      };
+      return [
+        ...articles.filter(isPriority),
+        ...articles.filter(article => !isPriority(article))
+      ];
+    }
+
+    function parsePriorityDomains(text) {
+      const domains = (text || '').split('\n').map(line => line.trim().toLowerCase()).filter(Boolean);
+      return [...new Set(domains)];
+    }
+
+    const urls = (articles) => articles.map(a => getArticleUrl(a));
+
+    await it('returns articles unchanged with no priority domains', () => {
+      const articles = createMockArticles(3);
+      assertEqual(sortArticles(articles, []), articles);
+    });
+
+    await it('moves priority domains first and keeps relative order', () => {
+      const articles = [
+        createMockArticle('1', 'https://a.com/1'),
+        createMockArticle('2', 'https://www.ilpost.it/2'),
+        createMockArticle('3', 'https://b.com/3'),
+        createMockArticle('4', 'https://slashdot.org/4')
+      ];
+      const sorted = sortArticles(articles, ['ilpost.it', 'slashdot.org']);
+      assertEqual(JSON.stringify(urls(sorted)), JSON.stringify([
+        'https://www.ilpost.it/2', 'https://slashdot.org/4', 'https://a.com/1', 'https://b.com/3'
+      ]));
+    });
+
+    await it('matches case-insensitively and ignores blank entries', () => {
+      const articles = [
+        createMockArticle('1', 'https://a.com/1'),
+        createMockArticle('2', 'https://ILPOST.it/2')
+      ];
+      const sorted = sortArticles(articles, ['  IlPost.it ', '', '   ']);
+      assertEqual(sorted[0].id, 'article-2');
+    });
+
+    await it('keeps articles without a URL in the non-priority group', () => {
+      const articles = [{ id: 'x' }, createMockArticle('1', 'https://ilpost.it/1')];
+      const sorted = sortArticles(articles, ['ilpost.it']);
+      assertEqual(sorted[0].id, 'article-1');
+      assertEqual(sorted[1].id, 'x');
+    });
+
+    await it('parses textarea input into trimmed, lowercased, unique domains', () => {
+      assertEqual(
+        JSON.stringify(parsePriorityDomains(' IlPost.it\n\nslashdot.org\nilpost.it \n')),
+        JSON.stringify(['ilpost.it', 'slashdot.org'])
+      );
+      assertArrayLength(parsePriorityDomains(''), 0);
+    });
+  });
+
+  // =========================================================================
+  // Pagination
+  // =========================================================================
+
+  await describe('Pagination', async () => {
+    async function fetchAllPages(fetchPage, maxPages = 50) {
+      const fetched = [];
+      let continuation;
+      for (let page = 0; page < maxPages; page++) {
+        const data = await fetchPage(continuation);
+        fetched.push(...(data?.items || []));
+        continuation = data?.continuation;
+        if (!continuation) {
+          break;
+        }
+      }
+      return fetched;
+    }
+
+    await it('follows continuation tokens and merges items', async () => {
+      const pages = {
+        start: { items: createMockArticles(2), continuation: 'p2' },
+        p2: { items: createMockArticles(2, 'https://example.com/b-'), continuation: 'p3' },
+        p3: { items: createMockArticles(1, 'https://example.com/c-') }
+      };
+      const requested = [];
+      const all = await fetchAllPages(async (c) => {
+        requested.push(c || 'start');
+        return pages[c || 'start'];
+      });
+      assertArrayLength(all, 5);
+      assertEqual(requested.join(','), 'start,p2,p3');
+    });
+
+    await it('stops at the page cap even if continuation never ends', async () => {
+      let calls = 0;
+      const all = await fetchAllPages(async () => {
+        calls++;
+        return { items: [{ id: calls }], continuation: 'again' };
+      }, 3);
+      assertEqual(calls, 3);
+      assertArrayLength(all, 3);
+    });
+
+    await it('handles an empty or null response', async () => {
+      const all = await fetchAllPages(async () => null);
+      assertArrayLength(all, 0);
+    });
+  });
+
+  // =========================================================================
   // Results Summary
   // =========================================================================
   console.log('\n' + '='.repeat(60));

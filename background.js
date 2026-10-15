@@ -33,6 +33,9 @@ const DELAYS = {
 const ALARM_NAME = 'badge-update';
 const UPDATE_INTERVAL_MINUTES = 15;
 const CLICK_LOG_MAX_ENTRIES = 500;
+const MAX_STREAM_PAGES = 50;   // Safety cap on paginated fetches (50 x 1000 articles)
+const SORT_ORDERS = ['newest', 'oldest'];
+const DEFAULT_SORT_ORDER = 'newest';
 
 // =============================================================================
 // Utilities
@@ -61,6 +64,43 @@ function isValidUrl(url) {
  */
 function getArticleUrl(article) {
   return article?.canonicalUrl || article?.alternate?.[0]?.href;
+}
+
+/**
+ * Moves articles whose URL contains one of the priority domains to the front.
+ * Relative order is kept within both groups, so the fetch order (newest/oldest) still applies.
+ * @param {Array<Object>} articles - Feedly article objects
+ * @param {Array<string>} priorityDomains - URL substrings to prioritize (e.g. 'ilpost.it')
+ * @returns {Array<Object>}
+ */
+function sortArticles(articles, priorityDomains = []) {
+  const domains = priorityDomains.map(d => String(d).trim().toLowerCase()).filter(Boolean);
+  if (domains.length === 0) {
+    return articles;
+  }
+
+  const isPriority = (article) => {
+    const url = (getArticleUrl(article) || '').toLowerCase();
+    return domains.some(domain => url.includes(domain));
+  };
+
+  return [
+    ...articles.filter(isPriority),
+    ...articles.filter(article => !isPriority(article))
+  ];
+}
+
+/**
+ * Reads the sort order and priority domains from user settings
+ * @returns {Promise<{sortOrder: string, priorityDomains: Array<string>}>}
+ */
+async function getSortSettings() {
+  const result = await browser.storage.local.get(STORAGE_KEYS.userSettings);
+  const settings = result[STORAGE_KEYS.userSettings] || {};
+  return {
+    sortOrder: SORT_ORDERS.includes(settings.sortOrder) ? settings.sortOrder : DEFAULT_SORT_ORDER,
+    priorityDomains: Array.isArray(settings.priorityDomains) ? settings.priorityDomains : []
+  };
 }
 
 // =============================================================================
@@ -219,10 +259,23 @@ class FeedlyAPI {
       const userId = await this.getUserId();
       const streamId = encodeURIComponent(`user/${userId}/tag/global.saved`);
 
-      const url = `${FEEDLY_CONFIG.apiBase}/streams/contents?streamId=${streamId}&count=1000&unreadOnly=false&ts=${Date.now()}`;
+      const { sortOrder, priorityDomains } = await getSortSettings();
+      const baseUrl = `${FEEDLY_CONFIG.apiBase}/streams/contents?streamId=${streamId}&count=1000&unreadOnly=false&ranked=${sortOrder}`;
 
-      const data = await this.makeRequest(url);
-      const articles = data?.items || [];
+      // Follow continuation tokens so more than 1000 saved articles are fetched
+      const fetched = [];
+      let continuation;
+      for (let page = 0; page < MAX_STREAM_PAGES; page++) {
+        const continuationParam = continuation ? `&continuation=${encodeURIComponent(continuation)}` : '';
+        const data = await this.makeRequest(`${baseUrl}${continuationParam}&ts=${Date.now()}`);
+        fetched.push(...(data?.items || []));
+        continuation = data?.continuation;
+        if (!continuation) {
+          break;
+        }
+      }
+
+      const articles = sortArticles(fetched, priorityDomains);
       const lastSync = Date.now();
 
       await browser.storage.local.set({

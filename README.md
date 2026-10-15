@@ -27,6 +27,9 @@ This extension opens all your saved Feedly articles in batches with a single cli
 - **Auto-Unsave**: Automatically removes saved status as articles open
 - **Badge Counter**: Shows saved article count on toolbar icon
 - **Customizable**: Adjust batch size to your needs
+- **Sort Order**: Open newest or oldest saved articles first
+- **Priority Domains**: List domains (e.g. `ilpost.it`) whose articles open before everything else
+- **No 1000-Article Cap**: Fetches every saved article, following Feedly's pagination
 - **Secure**: Token stored locally in browser storage
 - **Free Tier**: Works with Feedly's free developer tokens
 - **Smart Batching**: "Open All" mode processes every saved article in controlled batches with a cooldown between batches

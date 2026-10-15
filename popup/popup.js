@@ -31,6 +31,8 @@ const elements = {
   errorMsg: document.getElementById('error-message'),
   progressText: document.getElementById('progress-text'),
   batchSize: document.getElementById('batch-size-input'),
+  sortOrder: document.getElementById('sort-order-select'),
+  priorityDomains: document.getElementById('priority-domains-input'),
   articleList: document.getElementById('article-list'),
   toggleListBtn: document.getElementById('toggle-list-btn'),
   progressContainer: document.getElementById('progress-container'),
@@ -61,17 +63,20 @@ const STORAGE_KEY = 'userSettings';
 const BATCH_SIZE_LIMITS = { min: 1, max: 100 };
 const BATCH_COOLDOWN_MS = 1000;
 const SETTINGS_DEBOUNCE_MS = 300;
+const SORT_ORDERS = ['newest', 'oldest'];
 const PROGRESS_CLEAR_DELAY_MS = 3000;
 const COMPLETION_CLOSE_DELAY_MS = 1500;
 const MAX_TOASTS = 3;
 
 /**
  * Application state
- * @type {{articles: Array, batchSize: number, processing: boolean}}
+ * @type {{articles: Array, batchSize: number, sortOrder: string, priorityDomains: Array<string>, processing: boolean}}
  */
 const state = {
   articles: [],
   batchSize: 30,
+  sortOrder: 'newest',
+  priorityDomains: [],
   processing: false,
   lastSync: null,
   articleListVisible: false,
@@ -179,10 +184,19 @@ async function init() {
 async function loadSettings() {
   try {
     const result = await browser.storage.local.get(STORAGE_KEY);
-    if (result[STORAGE_KEY]?.batchSize) {
-      state.batchSize = clampBatchSize(result[STORAGE_KEY].batchSize);
+    const settings = result[STORAGE_KEY] || {};
+    if (settings.batchSize) {
+      state.batchSize = clampBatchSize(settings.batchSize);
+    }
+    if (SORT_ORDERS.includes(settings.sortOrder)) {
+      state.sortOrder = settings.sortOrder;
+    }
+    if (Array.isArray(settings.priorityDomains)) {
+      state.priorityDomains = settings.priorityDomains;
     }
     elements.batchSize.value = state.batchSize;
+    elements.sortOrder.value = state.sortOrder;
+    elements.priorityDomains.value = state.priorityDomains.join('\n');
   } catch (error) {
     console.error('Failed to load settings:', error);
   }
@@ -198,7 +212,11 @@ async function saveSettings() {
     elements.batchSize.value = state.batchSize;
 
     await browser.storage.local.set({
-      [STORAGE_KEY]: { batchSize: state.batchSize }
+      [STORAGE_KEY]: {
+        batchSize: state.batchSize,
+        sortOrder: state.sortOrder,
+        priorityDomains: state.priorityDomains
+      }
     });
 
     updateUI();
@@ -206,6 +224,28 @@ async function saveSettings() {
     console.error('Failed to save settings:', error);
     showError('Failed to save settings');
   }
+}
+
+/**
+ * Saves the sort order and priority domains, then refetches so the new order applies
+ */
+async function saveSortSettings() {
+  state.sortOrder = SORT_ORDERS.includes(elements.sortOrder.value) ? elements.sortOrder.value : 'newest';
+  state.priorityDomains = parsePriorityDomains(elements.priorityDomains.value);
+  elements.priorityDomains.value = state.priorityDomains.join('\n');
+
+  await saveSettings();
+  await loadArticles(true);
+}
+
+/**
+ * Parses the priority domains textarea: one entry per line, trimmed, lowercased, deduplicated
+ * @param {string} text - Raw textarea value
+ * @returns {Array<string>}
+ */
+function parsePriorityDomains(text) {
+  const domains = (text || '').split('\n').map(line => line.trim().toLowerCase()).filter(Boolean);
+  return [...new Set(domains)];
 }
 
 /**
@@ -944,6 +984,9 @@ function setupEventListeners() {
     updateBatchPreview();
   });
   elements.batchSize.addEventListener('blur', saveSettings);
+  elements.sortOrder.addEventListener('change', saveSortSettings);
+  // 'change' fires on blur, so typing doesn't trigger a refetch per keystroke
+  elements.priorityDomains.addEventListener('change', saveSortSettings);
 
   elements.openBatchBtn.addEventListener('click', () => openBatch());
   elements.openAllBtn.addEventListener('click', openAllSmart);

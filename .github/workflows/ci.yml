@@ -3,6 +3,8 @@ name: CI
 "on":
   push:
     branches: [main, develop]
+    # Tags pushed by `npm run release`; auto-release tags arrive via workflow_dispatch
+    tags: ["v*.*.*"]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -39,3 +41,77 @@ jobs:
     with:
       strategy: commits
     secrets: inherit
+
+  publish:
+    name: Publish release
+    needs: [ci]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Set version from tag
+        # auto-release only pushes a tag, so manifest.json may still hold the previous version
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          node -e "const fs=require('fs');fs.writeFileSync('manifest.json',fs.readFileSync('manifest.json','utf8').replace(/\"version\": *\"[^\"]*\"/,'\"version\": \"$VERSION\"'))"
+          grep '"version"' manifest.json
+
+      - name: Build
+        run: bash build-extension.sh
+
+      - name: Write release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # Commits since the last published release, minus Renovate dependency bumps
+        run: |
+          set -euo pipefail
+          PREV_TAG=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --limit 100 \
+            --json tagName,publishedAt \
+            | jq -r --arg cur "$GITHUB_REF_NAME" \
+              '[.[] | select(.tagName != $cur)] | sort_by(.publishedAt) | last.tagName // empty')
+          RANGE="${PREV_TAG:+$PREV_TAG..}$GITHUB_REF_NAME"
+          git log "$RANGE" --no-merges --format='- %s (%h)' | grep -v '^- chore(deps)' > release_notes.md || true
+          [ -s release_notes.md ] || echo "- Dependency updates only" > release_notes.md
+          cat release_notes.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists, uploading the ZIP only"
+            gh release upload "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" \
+              --title "$GITHUB_REF_NAME" --notes-file release_notes.md --verify-tag
+          fi
+
+      - name: Submit to Firefox Add-ons
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "$WEB_EXT_API_KEY" ] || [ -z "$WEB_EXT_API_SECRET" ]; then
+            echo "::warning::AMO_JWT_ISSUER/AMO_JWT_SECRET not set, skipping Firefox Add-ons submission"
+            exit 0
+          fi
+          # Sign exactly what the ZIP ships, not the whole checkout
+          mkdir -p build/amo
+          unzip -q dist/*.zip -d build/amo
+          # approval-timeout 0: submit for review without waiting for it
+          npx --yes web-ext@10.8.0 sign --source-dir build/amo --channel listed --approval-timeout 0

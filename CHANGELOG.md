@@ -1,5 +1,15 @@
 # Changelog
 
+# [2.1.0](https://github.com/mbologna/feedly-saved-opener/compare/v2.0.1...v2.1.0) (2026-10-15)
+
+### Bug Fixes
+
+* **ci:** let auto-release build the tag it pushes ([3cd5706](https://github.com/mbologna/feedly-saved-opener/commit/3cd5706bd9a0681e9d9872662424560583e10657))
+
+### Features
+
+* add sort order, priority domains and pagination ([b86b9a4](https://github.com/mbologna/feedly-saved-opener/commit/b86b9a4be328b9c0695a802e5431245807dfb54c))
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

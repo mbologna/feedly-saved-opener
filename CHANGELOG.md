@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.1.2](https://github.com/mbologna/feedly-saved-opener/compare/v2.1.1...v2.1.2) (2026-10-15)
+
+### Bug Fixes
+
+* **ci:** strip whitespace from AMO credentials before signing ([b33ca44](https://github.com/mbologna/feedly-saved-opener/commit/b33ca4417cbadb277c9ff750a067ae1593cef2e8))
+
 ## [2.1.1](https://github.com/mbologna/feedly-saved-opener/compare/v2.1.0...v2.1.1) (2026-10-15)
 
 # [2.1.0](https://github.com/mbologna/feedly-saved-opener/compare/v2.0.1...v2.1.0) (2026-10-15)

@@ -106,6 +106,10 @@ jobs:
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
         run: |
           set -euo pipefail
+          # Pasted secrets can carry stray spaces/newlines, which AMO rejects as a bad signature
+          WEB_EXT_API_KEY=$(printf '%s' "$WEB_EXT_API_KEY" | tr -d '[:space:]')
+          WEB_EXT_API_SECRET=$(printf '%s' "$WEB_EXT_API_SECRET" | tr -d '[:space:]')
+          export WEB_EXT_API_KEY WEB_EXT_API_SECRET
           if [ -z "$WEB_EXT_API_KEY" ] || [ -z "$WEB_EXT_API_SECRET" ]; then
             echo "::warning::AMO_JWT_ISSUER/AMO_JWT_SECRET not set, skipping Firefox Add-ons submission"
             exit 0

@@ -43,6 +43,12 @@
         ]
     },
     "release-it": {
+        "npm": {
+            "publish": false
+        },
+        "hooks": {
+            "after:bump": "node -e \"const fs=require('fs');fs.writeFileSync('manifest.json',fs.readFileSync('manifest.json','utf8').replace(/\\\"version\\\": *\\\"[^\\\"]*\\\"/,'\\\"version\\\": \\\"${version}\\\"'))\""
+        },
         "git": {
             "commitMessage": "chore: release v${version}",
             "tagName": "v${version}"

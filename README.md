@@ -105,36 +105,27 @@ npm run lint:fix    # Auto-fix issues
 npm run build
 ```
 
-Output: `dist/feedly-saved-opener-v2.0.0.zip`
+Output: `dist/feedly-saved-opener-v<version>.zip`
 
-### Creating a Release
+### Releasing
 
-1. **Make changes and commit using conventional commits**
-   ```bash
-   git add .
-   git commit -m "feat: add new feature"
-   ```
+Releases are automated. Every Monday, the scheduled CI run tags a new version if there are commits since the last tag. Conventional Commits pick the bump: `feat` → minor, `type!:` or `BREAKING CHANGE` → major, anything else → patch.
 
-2. **Generate changelog and bump version**
-   ```bash
-   npm run release
-   ```
-   This will:
-   - Bump version in `package.json` and `manifest.json`
-   - Generate/update `CHANGELOG.md`
-   - Create a git tag
-   - Commit the changes
+When a `v*.*.*` tag is built, the `publish` job in `.github/workflows/ci.yml`:
+- sets the `manifest.json` version from the tag
+- builds the ZIP, running lint and tests first
+- creates a GitHub release with the ZIP, using the commits since the previous release as notes (Renovate `chore(deps)` commits left out)
+- submits the build to Firefox Add-ons (listed channel) for review
 
-3. **Push to GitHub**
-   ```bash
-   git push --follow-tags origin main
-   ```
+The Firefox Add-ons step needs two repository secrets, `AMO_JWT_ISSUER` and `AMO_JWT_SECRET`. Get them from the [AMO API keys page](https://addons.mozilla.org/developers/addon/api/key/). Without them, the step is skipped with a warning.
 
-4. **GitHub Actions will automatically**:
-   - Run tests
-   - Build the extension
-   - Create a GitHub release with the ZIP file
-   - Use the generated changelog as release notes
+To release right away instead of waiting for Monday:
+```bash
+npm run release
+```
+This bumps `package.json` and `manifest.json`, updates `CHANGELOG.md`, commits, tags and pushes. The tag push starts the same `publish` job.
+
+Weekly releases only push a tag. `CHANGELOG.md` and the version in `package.json`/`manifest.json` are only updated by `npm run release`, so the GitHub releases are the full history.
 
 ## Privacy
 

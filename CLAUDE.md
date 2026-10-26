@@ -13,10 +13,10 @@ npm test              # run all tests (node tests/test.js)
 npm run lint          # eslint check
 npm run lint:fix      # eslint auto-fix
 npm run build         # build extension zip into dist/
-npm run release       # bump version (package.json + manifest.json), update CHANGELOG, create git tag
+npm run release       # bump version (package.json + manifest.json), commit, create git tag
 ```
 
-Releases are automated: the weekly scheduled CI run tags a new version when there are new commits, and the `publish` job in `.github/workflows/ci.yml` builds any `v*.*.*` tag, creates the GitHub release with the ZIP, and submits it to Firefox Add-ons (needs `AMO_JWT_ISSUER`/`AMO_JWT_SECRET` secrets). It takes the version from the tag, not from `manifest.json`.
+Releases are automated: the weekly scheduled CI run (Monday 06:00 UTC) tags a new version when a feat, fix, perf, revert or breaking commit landed, a push releases a `fix(security)` update at once, and the `publish` job in `.github/workflows/ci.yml` builds any `v*.*.*` tag, creates the GitHub release with the ZIP, and submits it to Firefox Add-ons (needs `AMO_JWT_ISSUER`/`AMO_JWT_SECRET` secrets). It takes the version from the tag, not from `manifest.json`.
 
 ## Architecture
 

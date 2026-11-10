@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   ci:
-    uses: mbologna/.github/.github/workflows/node-ci.yml@a9dfc75b85585ab2beca3382ee6e289aa73af954 # main
+    uses: mbologna/.github/.github/workflows/node-ci.yml@122054e64bfe58b04c228a18865fe52116885f70 # main
     with:
       node_version: "20"
       package_manager: npm
@@ -46,7 +46,7 @@ jobs:
     permissions:
       contents: write
       actions: write
-    uses: mbologna/.github/.github/workflows/auto-release.yml@a9dfc75b85585ab2beca3382ee6e289aa73af954 # main
+    uses: mbologna/.github/.github/workflows/auto-release.yml@122054e64bfe58b04c228a18865fe52116885f70 # main
     with:
       strategy: conventional
     secrets: inherit

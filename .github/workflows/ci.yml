@@ -87,6 +87,8 @@ jobs:
           [ -s release_notes.md ] || echo "- Dependency updates only" > release_notes.md
           cat release_notes.md
 
+      # Attaches the Firefox ZIP and the Edge/Chrome ZIP; the Edge Add-ons and
+      # Chrome Web Store uploads are manual for now
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -114,8 +116,7 @@ jobs:
             echo "::warning::AMO_JWT_ISSUER/AMO_JWT_SECRET not set, skipping Firefox Add-ons submission"
             exit 0
           fi
-          # Sign exactly what the ZIP ships, not the whole checkout
-          mkdir -p build/amo
-          unzip -q dist/*.zip -d build/amo
+          # build/firefox is exactly what the Firefox ZIP ships; dist/ also
+          # holds the Edge/Chrome ZIP, which AMO must not get
           # approval-timeout 0: submit for review without waiting for it
-          npx --yes web-ext@10.8.0 sign --source-dir build/amo --channel listed --approval-timeout 0
+          npx --no-install web-ext sign --source-dir build/firefox --channel listed --approval-timeout 0

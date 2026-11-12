@@ -79,35 +79,19 @@
 <body>
   <div class="container">
     <h1>⭐ Feedly Saved Opener Icon Generator</h1>
-    <p>Generate production-ready icons for the Firefox extension</p>
+    <p>Generate the extension icons for every browser</p>
 
-    <div class="icon-preview">
-      <div class="icon-item">
-        <h3>48x48</h3>
-        <canvas id="icon48" width="48" height="48"></canvas>
-        <br>
-        <button onclick="downloadIcon('icon48', 'icon-48.png')">Download 48x48</button>
-      </div>
-
-      <div class="icon-item">
-        <h3>96x96</h3>
-        <canvas id="icon96" width="96" height="96"></canvas>
-        <br>
-        <button onclick="downloadIcon('icon96', 'icon-96.png')">Download 96x96</button>
-      </div>
-    </div>
+    <div class="icon-preview" id="preview"></div>
 
     <button onclick="downloadAll()" style="margin-top: 20px; width: 100%;">
       📦 Download All Icons
     </button>
 
     <div class="instructions">
-      <h3>📋 Installation Instructions:</h3>
+      <h3>📋 Instructions:</h3>
       <ol>
-        <li>Click "Download All Icons" or download each icon individually</li>
-        <li>Create an <code>icons/</code> folder in your extension directory</li>
-        <li>Save both icons to the <code>icons/</code> folder</li>
-        <li>Reload the extension in Firefox</li>
+        <li>Run <code>scripts/render-icons.sh</code> to write every size to <code>icons/</code> with a headless Chromium browser</li>
+        <li>Or click "Download All Icons" and move the files into <code>icons/</code></li>
       </ol>
     </div>
   </div>
@@ -203,6 +187,8 @@
       ctx.fill();
     }
 
+    const SIZES = [16, 32, 48, 96, 128];
+
     function downloadIcon(canvasId, filename) {
       const canvas = document.getElementById(canvasId);
       const link = document.createElement('a');
@@ -212,16 +198,30 @@
     }
 
     function downloadAll() {
-      downloadIcon('icon48', 'icon-48.png');
-      setTimeout(() => {
-        downloadIcon('icon96', 'icon-96.png');
-      }, 100);
+      SIZES.forEach((size, i) => {
+        setTimeout(() => downloadIcon(`icon${size}`, `icon-${size}.png`), i * 100);
+      });
     }
 
-    // Generate icons on page load
+    // Generate icons on page load; the JSON block lets scripts/render-icons.sh
+    // read the PNGs from a headless browser's --dump-dom output
     window.onload = () => {
-      createIcon('icon48', 48);
-      createIcon('icon96', 96);
+      const preview = document.getElementById('preview');
+      const data = {};
+      for (const size of SIZES) {
+        const item = document.createElement('div');
+        item.className = 'icon-item';
+        item.innerHTML = `<h3>${size}x${size}</h3><canvas id="icon${size}" width="${size}" height="${size}"></canvas><br>
+          <button onclick="downloadIcon('icon${size}', 'icon-${size}.png')">Download ${size}x${size}</button>`;
+        preview.appendChild(item);
+        createIcon(`icon${size}`, size);
+        data[size] = document.getElementById(`icon${size}`).toDataURL('image/png');
+      }
+      const out = document.createElement('script');
+      out.type = 'application/json';
+      out.id = 'icon-data';
+      out.textContent = JSON.stringify(data);
+      document.body.appendChild(out);
     };
   </script>
 </body>

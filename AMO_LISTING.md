@@ -34,7 +34,11 @@ Feedly Saved Opener opens all your saved articles in browser tabs with a single 
 - Open 1-100 articles at once (customizable)
 - 150ms delay between tabs for reliable loading
 - Opens in background tabs (won't disrupt your work)
-- "Open All" mode processes every saved article in controlled batches with a cooldown between them
+- "Open All" processes every saved article in batches with a one-second pause between them, and keeps going after you close the popup
+- Optionally put each run's tabs in one tab group named after the day
+
+**⌨️ Keyboard Shortcut**
+- Alt+Shift+O opens the next batch without the popup (change it in Firefox's add-on shortcuts settings)
 
 **🔄 Auto-Unsave**
 - Automatically removes save/star as articles open
@@ -43,8 +47,8 @@ Feedly Saved Opener opens all your saved articles in browser tabs with a single 
 
 **📊 Badge Notifications**
 - Shows saved article count on toolbar icon
-- Updates every 15 minutes
-- Know at a glance how many articles are waiting
+- Updates every 15 minutes and counts down while articles open
+- Shows "!" when Feedly no longer accepts your token
 
 **⚙️ Customizable**
 - Adjust batch size to your preference
@@ -57,22 +61,23 @@ Feedly Saved Opener opens all your saved articles in browser tabs with a single 
 - Export your click history as JSON, or clear it anytime
 
 **🖱️ Context Menu**
-- Right-click the toolbar icon for a quick "Open Next Batch" action, no popup needed
+- Right-click the toolbar icon to open the next batch, open all, or refresh the list
 
 **📡 Offline-Friendly**
+- The popup opens instantly from the cached list and refreshes it in the background
 - Falls back to cached articles when the network is unavailable
 - Automatically retries with backoff on rate limits or server errors
 
 **🔐 Privacy & Security**
 - No analytics or tracking
-- Token stored locally in encrypted storage
+- Token stored locally in the browser's extension storage
 - Direct Feedly API communication only
 - Open source and auditable
 
 **🆓 Free Tier Compatible**
 - Works with free Feedly accounts
-- Uses Feedly's developer tokens (250 requests/day)
-- Process ~125 articles daily
+- Uses Feedly's developer tokens (100,000 API requests a month)
+- Syncs download only articles saved since the last check
 
 ---
 
@@ -114,7 +119,7 @@ Choose how many articles to open at once. Smaller batches (10-20) are less overw
 The badge shows your current saved article count. Click to refresh anytime. Settings update instantly as you type.
 
 **Keyboard Shortcuts**
-Press 'R' in the popup to refresh the count. Enter/Space to open batch when focused.
+Alt+Shift+O opens the next batch from anywhere. Press 'R' in the popup to refresh the count.
 
 **Error Handling**
 Clear error messages if token expires or connection fails. Easy token reset process.
@@ -133,12 +138,13 @@ Beautiful gradient design with smooth animations. Clean, intuitive layout. Profe
 - No third-party services
 
 **Local Storage Only**
-Your Feedly token is stored in Firefox's encrypted extension storage. It never leaves your computer except to communicate directly with Feedly's API.
+Your Feedly token is stored in Firefox's extension storage on your computer. It is only ever sent to Feedly's API.
 
 **Minimal Permissions**
 - `storage` - Save your token, preferences, and local click history
-- `contextMenus` - Add the "Open Next Batch" right-click action on the toolbar icon
-- `alarms` - Periodically refresh the badge count in the background
+- `contextMenus` - Add the right-click actions on the toolbar icon
+- `alarms` - Refresh the badge count in the background and resume an interrupted "Open All"
+- `tabGroups` - Name the tab group opened articles go into (no permission prompt)
 - `https://cloud.feedly.com/*` - Access Feedly API
 
 **Open Source**
@@ -149,12 +155,12 @@ All code is publicly available on GitHub for auditing.
 ## 🛠️ TECHNICAL DETAILS
 
 **Requirements:**
-- Firefox 109 or later
+- Firefox 140 or later
 - Free Feedly account
 - Feedly developer token (free, easy to get)
 
 **Performance:**
-- Lightweight (~50KB)
+- Lightweight (~120KB unpacked)
 - No background resource usage
 - Instant popup opening
 - Minimal memory footprint
@@ -231,9 +237,9 @@ Open all saved newsletter articles at once, read in one focused session.
 
 ## 📊 STATS
 
-- **Version:** 2.0.0
+- **Version:** 3.0.0
 - **License:** MIT (Open Source)
-- **File Size:** ~50KB
+- **File Size:** ~120KB unpacked
 - **Languages:** JavaScript, HTML, CSS
 - **Dependencies:** None (vanilla JavaScript)
 
@@ -254,6 +260,15 @@ This extension is completely free with no ads, tracking, or premium features.
 ---
 
 ## 📝 CHANGELOG
+
+**v3.0.0**
+- "Open All" runs in the background, survives closing the popup, resumes after Firefox suspends the add-on, and can be stopped
+- Optional tab groups for opened articles
+- Alt+Shift+O shortcut and more toolbar menu actions
+- Instant popup from the cached list; much smaller downloads (only new articles are fetched)
+- Network errors in Firefox now trigger retries and the offline fallback
+- Clear "token expired" view; a mistyped token is no longer saved
+- Requires Firefox 140
 
 **v2.0.0**
 - "Open All" smart batching with cooldown between batches

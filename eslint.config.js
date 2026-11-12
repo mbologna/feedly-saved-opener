@@ -1,19 +1,17 @@
-'use strict';
+import js from '@eslint/js';
+import globals from 'globals';
 
-const js = require('@eslint/js');
-const globals = require('globals');
-
-module.exports = [
+export default [
+  {
+    ignores: ['node_modules/', 'dist/', 'build/', 'coverage/', '.commitlintrc.mjs']
+  },
   js.configs.recommended,
   {
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2024,
       sourceType: 'module',
       globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.es2021,
-        ...globals.webextensions
+        ...globals.es2024
       }
     },
     rules: {
@@ -21,7 +19,7 @@ module.exports = [
       'linebreak-style': ['error', 'unix'],
       'quotes': ['error', 'single', { 'avoidEscape': true }],
       'semi': ['error', 'always'],
-      'no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
+      'no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
       'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error',
@@ -39,6 +37,28 @@ module.exports = [
       'space-in-parens': ['error', 'never'],
       'object-curly-spacing': ['error', 'always'],
       'array-bracket-spacing': ['error', 'never']
+    }
+  },
+  {
+    // Extension code: browser globals, no Node
+    files: ['src/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.webextensions
+      }
+    },
+    rules: {
+      // Never call chrome.*: `browser` exists natively in every supported browser
+      'no-restricted-globals': ['error', { name: 'chrome', message: 'Use browser.* instead.' }]
+    }
+  },
+  {
+    files: ['scripts/**/*.js', 'tests/**/*.js', '*.js', '*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node
+      }
     }
   }
 ];

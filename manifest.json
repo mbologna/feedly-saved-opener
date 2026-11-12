@@ -2,44 +2,64 @@
     "manifest_version": 3,
     "name": "Feedly Saved Opener",
     "version": "2.1.2",
-    "description": "Open and unsave your Feedly saved articles in customizable batches. Fast, secure, and works with free Feedly accounts.",
+    "description": "Open and unsave your Feedly saved articles in batches. Fast, private, and works with free Feedly accounts.",
     "author": "Michele Bologna",
     "homepage_url": "https://github.com/mbologna/feedly-saved-opener",
     "icons": {
+        "16": "icons/icon-16.png",
+        "32": "icons/icon-32.png",
         "48": "icons/icon-48.png",
-        "96": "icons/icon-96.png"
+        "96": "icons/icon-96.png",
+        "128": "icons/icon-128.png"
     },
     "permissions": [
         "storage",
+        "alarms",
         "contextMenus",
-        "alarms"
+        "tabGroups"
     ],
     "host_permissions": [
         "https://cloud.feedly.com/*"
     ],
     "background": {
-        "service_worker": "background.js",
         "scripts": [
-            "background.js"
-        ]
+            "src/background/index.js"
+        ],
+        "type": "module"
     },
     "action": {
         "default_icon": {
+            "16": "icons/icon-16.png",
+            "32": "icons/icon-32.png",
             "48": "icons/icon-48.png",
             "96": "icons/icon-96.png"
         },
         "default_title": "Open Saved Feedly Articles",
-        "default_popup": "popup/popup.html"
+        "default_popup": "src/popup/popup.html"
+    },
+    "commands": {
+        "open-next-batch": {
+            "suggested_key": {
+                "default": "Alt+Shift+O"
+            },
+            "description": "Open the next batch of saved articles"
+        },
+        "open-all": {
+            "description": "Open all saved articles"
+        }
     },
     "browser_specific_settings": {
         "gecko": {
             "id": "feedly-saved-opener@michelebologna.net",
-            "strict_min_version": "109.0",
+            "strict_min_version": "140.0",
             "data_collection_permissions": {
                 "required": [
                     "none"
                 ]
             }
+        },
+        "gecko_android": {
+            "strict_min_version": "142.0"
         }
     }
 }

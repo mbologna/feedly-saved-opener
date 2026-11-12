@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="color-scheme" content="light dark">
+    <title>Feedly Saved Opener</title>
+    <link rel="stylesheet" href="popup.css">
+    <script type="module" src="popup.js"></script>
+</head>
+
+<body>
+    <main class="container">
+        <h1>⭐ Feedly Saved Opener</h1>
+
+        <section id="view-loading" aria-busy="true" aria-label="Loading">
+            <div class="skeleton skeleton-box"></div>
+            <div class="skeleton skeleton-text"></div>
+        </section>
+
+        <section id="view-connect" hidden>
+            <p id="connect-message" class="status info"></p>
+            <form id="connect-form">
+                <label for="token-input" class="visually-hidden">Feedly token</label>
+                <div class="token-input-wrapper">
+                    <input type="password" id="token-input" placeholder="Paste Feedly token here…" autocomplete="off" spellcheck="false" required>
+                    <button type="button" id="toggle-token-btn" class="btn-icon" aria-label="Show token" aria-pressed="false">👁️</button>
+                </div>
+                <button type="submit" id="connect-btn" class="btn-primary">Connect account</button>
+            </form>
+            <button type="button" id="get-token-btn" class="btn-secondary">Get a token from Feedly</button>
+        </section>
+
+        <section id="view-main" hidden>
+            <div id="article-count" class="article-count"></div>
+            <p id="sync-status" class="sync-status" aria-live="polite"></p>
+
+            <div id="job-panel" class="job-panel" hidden aria-live="polite">
+                <progress id="job-progress" max="1" value="0"></progress>
+                <div class="job-row">
+                    <span id="job-text"></span>
+                    <button type="button" id="cancel-btn" class="btn-link">Stop</button>
+                </div>
+            </div>
+
+            <div id="actions">
+                <button type="button" id="open-batch-btn" class="btn-primary"></button>
+                <button type="button" id="open-all-btn" class="btn-outline"></button>
+            </div>
+
+            <div id="empty-state" class="empty-state" hidden>
+                <span class="celebrate-icon" aria-hidden="true">🎉</span>
+                <h2>You're all caught up!</h2>
+                <p class="empty-text">No saved articles in Feedly.</p>
+                <button type="button" id="go-to-feedly-btn" class="btn-primary">Go to Feedly</button>
+            </div>
+
+            <details id="settings" class="panel">
+                <summary id="settings-summary">Settings</summary>
+                <div class="settings-row">
+                    <label for="batch-size-input">Batch size</label>
+                    <input type="number" id="batch-size-input" min="1" max="100" inputmode="numeric">
+                </div>
+                <div class="settings-row">
+                    <label for="sort-order-select">Order</label>
+                    <select id="sort-order-select">
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                    </select>
+                </div>
+                <div class="settings-row stacked">
+                    <label for="priority-domains-input">Open first (one domain per line)</label>
+                    <textarea id="priority-domains-input" rows="3" spellcheck="false" placeholder="ilpost.it&#10;slashdot.org"></textarea>
+                </div>
+                <div id="group-tabs-row" class="settings-row" hidden>
+                    <label for="group-tabs-input">Put opened tabs in a group</label>
+                    <input type="checkbox" id="group-tabs-input">
+                </div>
+                <p id="shortcut-hint" class="hint" hidden></p>
+            </details>
+
+            <details id="articles" class="panel" hidden>
+                <summary>Show articles</summary>
+                <ul id="article-list" class="article-list"></ul>
+            </details>
+
+            <details id="stats" class="panel">
+                <summary>📊 Stats</summary>
+                <p id="stats-summary" class="stats-summary"></p>
+                <div id="stats-body"></div>
+                <div class="button-row">
+                    <button type="button" id="export-log-btn" class="btn-outline btn-small">⬇️ Export click log</button>
+                    <button type="button" id="clear-log-btn" class="btn-outline btn-small">🗑️ Clear log</button>
+                </div>
+            </details>
+
+            <div class="button-row">
+                <button type="button" id="refresh-btn" class="btn-secondary btn-small">🔄 Refresh</button>
+                <button type="button" id="export-btn" class="btn-outline btn-small">Export URLs</button>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <span id="version"></span>
+            <button type="button" id="disconnect-btn" class="btn-link danger" hidden>Disconnect account</button>
+        </footer>
+    </main>
+
+    <dialog id="confirm-dialog">
+        <form method="dialog">
+            <h2 id="confirm-title"></h2>
+            <p id="confirm-message"></p>
+            <div class="button-row">
+                <button value="cancel" class="btn-secondary" formnovalidate>Cancel</button>
+                <button value="confirm" id="confirm-ok" class="btn-primary"></button>
+            </div>
+        </form>
+    </dialog>
+
+    <div id="toasts" class="toast-container" role="status" aria-live="polite"></div>
+</body>
+
+</html>

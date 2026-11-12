@@ -1,14 +1,19 @@
 {
     "name": "feedly-saved-opener",
     "version": "2.1.2",
-    "description": "Open saved Feedly articles in batch with one click",
+    "description": "Open saved Feedly articles in batches, in Firefox, Edge, Chrome and Safari",
     "scripts": {
-        "test": "node tests/test.js",
+        "test": "node --test 'tests/**/*.test.js'",
+        "test:coverage": "node --test --experimental-test-coverage 'tests/**/*.test.js'",
         "build": "./build-extension.sh",
-        "lint": "eslint *.js popup/*.js tests/*.js",
-        "lint:fix": "eslint *.js popup/*.js tests/*.js --fix",
+        "build:safari": "./build-safari.sh",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "start": "web-ext run --source-dir build/firefox",
+        "start:chromium": "web-ext run --source-dir build/chromium --target chromium",
         "prepare": "husky install",
-        "release": "release-it"
+        "release": "release-it",
+        "lint:ext": "web-ext lint --source-dir build/firefox --warnings-as-errors"
     },
     "repository": {
         "type": "git",
@@ -18,6 +23,9 @@
         "feedly",
         "rss",
         "firefox-extension",
+        "chrome-extension",
+        "edge-extension",
+        "safari-extension",
         "productivity"
     ],
     "author": "Michele Bologna",
@@ -28,13 +36,15 @@
     "homepage": "https://github.com/mbologna/feedly-saved-opener#readme",
     "devDependencies": {
         "@commitlint/cli": "^21.2.3",
-        "@release-it/conventional-changelog": "^12.0.2",
         "@eslint/js": "^10.0.0",
+        "@release-it/conventional-changelog": "^12.0.2",
+        "esbuild": "^0.28.2",
         "eslint": "^10.12.0",
         "globals": "^17.13.0",
         "husky": "^9.1.7",
         "lint-staged": "^17.6.0",
-        "release-it": "^21.1.1"
+        "release-it": "^21.1.1",
+        "web-ext": "^10.8.0"
     },
     "lint-staged": {
         "*.js": [
@@ -62,5 +72,9 @@
                 }
             }
         }
+    },
+    "type": "module",
+    "engines": {
+        "node": ">=22"
     }
 }

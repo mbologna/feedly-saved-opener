@@ -19,7 +19,7 @@ npm start                     # web-ext run on build/firefox
 npm run release               # bump package.json + manifest.json, commit, tag
 ```
 
-Releases are automated: the weekly scheduled CI run (Monday 06:00 UTC) tags a new version when a feat, fix, perf, revert or breaking commit landed, a push releases a `fix(security)` update at once, and the `publish` job in `.github/workflows/ci.yml` builds any `v*.*.*` tag, creates the GitHub release with the Firefox and Chromium ZIPs, and submits `build/firefox` to Firefox Add-ons (needs `AMO_JWT_ISSUER`/`AMO_JWT_SECRET` secrets). It takes the version from the tag, not from `manifest.json`. PRs are rebase-merged, so every commit lands on `main` as it is: CI lints each one (`commits / Conventional commits`), and their subjects are the release notes.
+Releases are automated: the weekly scheduled CI run (Monday 06:00 UTC) tags a new version when a feat, fix, perf, revert or breaking commit landed, a push releases a `fix(security)` update at once, and the `publish` job in `.github/workflows/ci.yml` builds any `v*.*.*` tag, creates the GitHub release with the Firefox and Chromium ZIPs, and submits `build/firefox` to Firefox Add-ons (needs `AMO_JWT_ISSUER`/`AMO_JWT_SECRET` secrets). It takes the version from the tag, not from `manifest.json`. PRs merge with a merge commit, so every commit lands on `main` as it is: CI lints each one (`commits / Conventional commits`), and their subjects are the release notes.
 
 ## Architecture
 

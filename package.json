@@ -1,6 +1,6 @@
 {
     "name": "feedly-saved-opener",
-    "version": "2.1.2",
+    "version": "0.0.0",
     "description": "Open saved Feedly articles in batches, in Firefox, Edge, Chrome and Safari",
     "scripts": {
         "test": "node --test 'tests/**/*.test.js'",

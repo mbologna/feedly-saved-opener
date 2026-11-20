@@ -136,9 +136,9 @@ Safari is staged in `build/safari/`; `./build-safari.sh` turns it into an app.
 
 Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/), enforced by commitlint.
 
-### Releasing
+## Versioning
 
-Releases are automated. Every Monday, the scheduled CI run tags a new version if a `feat`, `fix`, `perf`, `revert` or breaking commit landed since the last tag; chores, Renovate's `chore(deps)` updates among them, ship with the next such release. A Renovate `fix(security)` update is released at once, on its push. Conventional Commits pick the bump: `feat` → minor, `type!:` or `BREAKING CHANGE` → major, anything else → patch.
+Releases follow SemVer and are automated: [auto-release](https://github.com/mbologna/auto-release) tags `vX.Y.Z`, and the extension ships with that version in its manifest. Every Monday, the scheduled CI run tags a new version if a `feat`, `fix`, `perf`, `revert` or breaking commit landed since the last tag; chores, Renovate's `chore(deps)` updates among them, ship with the next such release. A Renovate `fix(security)` update is released at once, on its push. Conventional Commits pick the bump: `feat` → minor; `fix`, `perf`, `revert` → patch; `type!:` or a `BREAKING CHANGE:` footer → major. See the [versioning standard](https://github.com/mbologna/.github/blob/main/VERSIONING.md).
 
 When a `v*.*.*` tag is built, the `publish` job in `.github/workflows/ci.yml`:
 - sets the `manifest.json` version from the tag
@@ -148,10 +148,6 @@ When a `v*.*.*` tag is built, the `publish` job in `.github/workflows/ci.yml`:
 
 The Firefox Add-ons step needs two repository secrets, `AMO_JWT_ISSUER` and `AMO_JWT_SECRET`. Get them from the [AMO API keys page](https://addons.mozilla.org/developers/addon/api/key/). Without them, the step is skipped with a warning. Uploads to Edge Add-ons and the Chrome Web Store are manual.
 
-To release right away instead of waiting for Monday:
-```bash
-npm run release
-```
-This bumps `package.json` and `manifest.json`, commits, tags and pushes. The tag push starts the same `publish` job. Running the CI workflow by hand on `main` (*Actions → CI → Run workflow*) releases at once too.
+To release right away instead of waiting for Monday, run the CI workflow by hand on `main` (*Actions → CI → Run workflow*): auto-release tags whatever is unreleased, and the tag starts the same `publish` job.
 
-Weekly releases only push a tag; the version in `package.json`/`manifest.json` is only updated by `npm run release`. The GitHub releases are the full history.
+Releases only push a tag. The `version` in `package.json` is a `0.0.0` placeholder that nothing reads, and the one committed in `manifest.json` is not updated and lags behind the tags. The GitHub releases are the full history.

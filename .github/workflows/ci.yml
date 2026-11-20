@@ -3,7 +3,6 @@ name: CI
 "on":
   push:
     branches: [main, develop]
-    # Tags pushed by `npm run release`; auto-release tags arrive via workflow_dispatch
     tags: ["v*.*.*"]
   pull_request:
     branches: [main]

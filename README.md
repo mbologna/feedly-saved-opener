@@ -150,4 +150,4 @@ The Firefox Add-ons step needs two repository secrets, `AMO_JWT_ISSUER` and `AMO
 
 To release right away instead of waiting for Monday, run the CI workflow by hand on `main` (*Actions → CI → Run workflow*): auto-release tags whatever is unreleased, and the tag starts the same `publish` job.
 
-Releases only push a tag; the version committed in `package.json` and `manifest.json` is not updated and lags behind the tags. Don't use `npm run release` (release-it) for a release: it tags by hand, which the versioning standard rules out, and bumps from that stale `package.json` version rather than from the latest tag. The GitHub releases are the full history.
+Releases only push a tag; the version committed in `package.json` and `manifest.json` is not updated and lags behind the tags. The GitHub releases are the full history.

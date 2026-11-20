@@ -8,4 +8,4 @@ Plain SemVer: `vX.Y.Z` tags, each building the extension at that version and pub
 
 - Never create, move or delete tags, and never edit a version number to cut a release: auto-release tags from the commit types (`feat` minor; `fix`, `perf`, `revert` patch; `!` or a `BREAKING CHANGE:` footer major).
 - Write Conventional Commit subjects; they decide the next version.
-- Don't edit `version` in `manifest.json` or `package.json`, and don't run `npm run release`: the `publish` job writes the tag's version into `manifest.json` before it builds, and the committed values lag behind the tags.
+- Don't edit `version` in `manifest.json` or `package.json`: the `publish` job writes the tag's version into `manifest.json` before it builds, and the committed values lag behind the tags.

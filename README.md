@@ -136,6 +136,10 @@ Safari is staged in `build/safari/`; `./build-safari.sh` turns it into an app.
 
 Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/), enforced by commitlint.
 
+## Why not an existing tool
+
+Feedly's web app has no way to open saved articles in batches and unsave them as it goes. Checked 2026-11-23.
+
 ## Versioning
 
 Releases follow SemVer and are automated: [auto-release](https://github.com/mbologna/auto-release) tags `vX.Y.Z`, and the extension ships with that version in its manifest. Every Monday, the scheduled CI run tags a new version if a `feat`, `fix`, `perf`, `revert` or breaking commit landed since the last tag; chores, Renovate's `chore(deps)` updates among them, ship with the next such release. A Renovate `fix(security)` update is released at once, on its push. Conventional Commits pick the bump: `feat` → minor; `fix`, `perf`, `revert` → patch; `type!:` or a `BREAKING CHANGE:` footer → major. See the [versioning standard](https://github.com/mbologna/.github/blob/main/VERSIONING.md).
